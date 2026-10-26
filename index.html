@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>idk — Minimal Hi-Fi Tidal Player (h.shy.cx)</title>
+  <title>HiFi Player</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,8 +190,8 @@
       <div class="w-6 h-6 rounded-md theme-accent-bg flex items-center justify-center">
         <i class="fa-solid fa-wave-square text-[11px]"></i>
       </div>
-      <span class="font-semibold tracking-tight text-sm theme-text-main">idk</span>
-      <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-800 theme-text-muted border theme-border">h.shy.cx</span>
+      <span class="font-semibold tracking-tight text-sm theme-text-main">HiFi Player</span>
+      <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-800 theme-text-muted border theme-border">Lossless</span>
     </div>
     <div class="flex items-center gap-1.5">
       <button id="mobileSearchBtn" class="p-2 rounded-lg bg-surface-800 theme-text-muted hover:opacity-80" title="Search">
@@ -223,10 +223,10 @@
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h1 class="font-semibold text-sm tracking-tight theme-text-main">idk</h1>
+              <h1 class="font-semibold text-sm tracking-tight theme-text-main">HiFi Player</h1>
               <span id="qualityBadgeTop" class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-surface-800 theme-text-muted border theme-border">LOSSLESS</span>
             </div>
-            <p class="text-[10px] theme-text-muted font-mono truncate max-w-[125px]" id="sidebarApiHost">h.shy.cx</p>
+            <p class="text-[10px] theme-text-muted font-mono truncate max-w-[125px]" id="sidebarApiHost">Lossless Audio</p>
           </div>
         </div>
         <button id="openSettingsBtn" class="p-1.5 rounded-lg theme-text-muted hover:theme-text-main hover:bg-surface-800 transition" title="Settings & Themes">
@@ -307,9 +307,9 @@
         <div class="px-2.5 py-2 rounded-lg bg-surface-800/60 border theme-border flex items-center justify-between text-[11px]">
           <div class="flex items-center gap-2 min-w-0">
             <span id="apiStatusDot" class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
-            <span id="apiStatusText" class="theme-text-muted font-mono truncate">Connecting...</span>
+            <span id="apiStatusText" class="theme-text-muted font-mono truncate">Ready</span>
           </div>
-          <button id="pingApiBtn" class="theme-text-muted hover:theme-text-main ml-2" title="Test API Connection">
+          <button id="pingApiBtn" class="theme-text-muted hover:theme-text-main ml-2" title="Refresh Status">
             <i class="fa-solid fa-rotate text-[10px]"></i>
           </button>
         </div>
@@ -384,9 +384,10 @@
           <div class="rounded-xl bg-surface-900 border theme-border p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
             <div class="space-y-1.5">
               <div class="flex items-center gap-2 text-[11px] font-mono theme-text-muted">
-                <span>ENDPOINT: <strong id="heroApiLabel" class="theme-text-main">https://h.shy.cx</strong></span>
+                <span>HI-FI PLAYER</span>
                 <span>•</span>
-                <span>STREAM & DIRECT FLAC/AAC DOWNLOAD</span>
+                <span>LOSSLESS STREAMING & DIRECT AUDIO DOWNLOAD</span>
+                <strong id="heroApiLabel" class="hidden"></strong>
               </div>
               <div class="flex flex-wrap items-center gap-1.5">
                 <button data-quick-search="Daft Punk" class="quick-chip px-2.5 py-1 rounded-md bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-main transition">Daft Punk</button>
@@ -430,7 +431,7 @@
         <section id="view-recommendations" class="hidden space-y-5">
           <div class="rounded-xl bg-surface-900 border theme-border p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div>
-              <span class="text-[10px] font-mono uppercase tracking-wider theme-text-muted">Discovery Engine (/recommendations/ & /mix/)</span>
+              <span class="text-[10px] font-mono uppercase tracking-wider theme-text-muted">Personalized Discovery</span>
               <h2 class="text-lg font-semibold theme-text-main">Recommendations</h2>
               <p id="recSeedLabel" class="text-xs theme-text-muted mt-0.5">Seeded from your active track, liked songs, or listening history.</p>
             </div>
@@ -594,7 +595,7 @@
         <section id="view-downloads" class="hidden space-y-5">
           <div class="rounded-xl bg-surface-900 border theme-border p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <span class="text-[10px] font-mono uppercase theme-text-muted">Direct Audio Fetcher (/track/)</span>
+              <span class="text-[10px] font-mono uppercase theme-text-muted">Offline Audio</span>
               <h2 class="text-lg font-semibold theme-text-main">Downloads</h2>
               <p id="downloadsSubtitle" class="text-xs theme-text-muted mt-0.5">Tracks downloaded in your current quality tier (FLAC / AAC)</p>
             </div>
@@ -644,7 +645,7 @@
       <!-- Lyrics Content -->
       <div id="drawerLyricsPanel" class="hidden flex-1 flex flex-col min-h-0 p-4 overflow-y-auto">
         <div id="lyricsContainer" class="space-y-2 text-xs theme-text-muted leading-relaxed text-center py-6">
-          <p class="text-xs theme-text-muted">Play a song to load synchronized lyrics from <code class="font-mono">/lyrics/</code>.</p>
+          <p class="text-xs theme-text-muted">Play a song to view synchronized lyrics.</p>
         </div>
       </div>
     </aside>
@@ -812,8 +813,8 @@
     <div class="bg-surface-900 border theme-border rounded-xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-sm font-semibold theme-text-main">Appearance & Tidal API Settings</h3>
-          <p class="text-xs theme-text-muted">Customize your theme look, layout density, and API instance</p>
+          <h3 class="text-sm font-semibold theme-text-main">Player Appearance & Preferences</h3>
+          <p class="text-xs theme-text-muted">Customize your theme look and layout density</p>
         </div>
         <button id="closeSettingsModalBtn" class="theme-text-muted hover:theme-text-main"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -859,28 +860,14 @@
           <input id="compactRowsCheckbox" type="checkbox" class="w-4 h-4 rounded" />
         </div>
 
-        <!-- Primary API Base URL -->
-        <div>
-          <label class="text-xs font-medium theme-text-muted block mb-1">Primary Tidal API Base URL</label>
-          <input id="apiBaseInput" type="url" value="https://h.shy.cx" placeholder="https://h.shy.cx" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none" />
-        </div>
-
-        <div>
-          <p class="text-[11px] theme-text-muted mb-1">Quick API Presets</p>
-          <div class="flex flex-wrap gap-1.5">
-            <button data-api-preset="https://h.shy.cx" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-main">https://h.shy.cx</button>
-            <button data-api-preset="https://eu-central.monochrome.tf" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">eu-central.monochrome.tf</button>
-            <button data-api-preset="https://us-west.monochrome.tf" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">us-west.monochrome.tf</button>
-            <button data-api-preset="https://hifi-one.spotisaver.net" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">hifi-one.spotisaver.net</button>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-800 border theme-border">
-          <div>
-            <p class="text-xs font-medium theme-text-main">Enable Multi-Instance Failover</p>
-            <p class="text-[11px] theme-text-muted">Retry backup Hi-Fi nodes if primary is unreachable</p>
-          </div>
-          <input id="failoverCheckbox" type="checkbox" checked class="w-4 h-4 rounded" />
+        <!-- Hidden Backend Configuration (kept out of plain sight) -->
+        <div class="hidden">
+          <input id="apiBaseInput" type="url" value="https://h.shy.cx" />
+          <button data-api-preset="https://h.shy.cx" class="api-preset-btn">https://h.shy.cx</button>
+          <button data-api-preset="https://eu-central.monochrome.tf" class="api-preset-btn">eu-central.monochrome.tf</button>
+          <button data-api-preset="https://us-west.monochrome.tf" class="api-preset-btn">us-west.monochrome.tf</button>
+          <button data-api-preset="https://hifi-one.spotisaver.net" class="api-preset-btn">hifi-one.spotisaver.net</button>
+          <input id="failoverCheckbox" type="checkbox" checked />
         </div>
       </div>
 
@@ -1209,18 +1196,16 @@
       }
     }
 
-    function updateApiStatusIndicator(ok, hostUrl, versionText = '') {
+    function updateApiStatusIndicator(ok) {
       const dot = document.getElementById('apiStatusDot');
       const txt = document.getElementById('apiStatusText');
-      const hostShort = hostUrl.replace(/^https?:\/\//, '');
-      document.getElementById('sidebarApiHost').textContent = hostShort;
-      document.getElementById('heroApiLabel').textContent = hostUrl;
+      document.getElementById('sidebarApiHost').textContent = 'Lossless Audio';
       if (ok) {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0';
-        txt.textContent = `${hostShort} ${versionText}`.trim();
+        txt.textContent = 'Connected';
       } else {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0';
-        txt.textContent = `${hostShort} (Offline)`;
+        txt.textContent = 'Offline';
       }
     }
 
@@ -1398,7 +1383,7 @@
         console.warn('Stream error:', err);
         streamChip.textContent = 'OFFLINE';
         playSynthesizedFallbackTone();
-        showToast(`Could not stream "${track.title}" from ${state.apiBase}.`, 'error');
+        showToast(`Could not stream "${track.title}".`, 'error');
         state.isPlaying = false;
         updatePlayPauseButton();
       }
@@ -1723,7 +1708,7 @@
 
       const typeLabels = { s: 'Tracks', a: 'Artists', al: 'Albums', p: 'Playlists' };
       heading.textContent = `${typeLabels[searchType] || 'Results'} — "${q}"`;
-      sub.textContent = `GET ${state.apiBase}/search/?${searchType}=${q}`;
+      sub.textContent = `Showing top results for "${q}"`;
 
       try {
         const json = await apiFetch(`/search/?${searchType}=${encodeURIComponent(q)}&limit=30&offset=0`);
@@ -1912,7 +1897,7 @@
       }
 
       label.textContent = `Seed: "${seedTrack.title}" — ${seedTrack.artist.name} (#${seedTrack.id})`;
-      container.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching /recommendations/?id=${seedTrack.id}...</div>`;
+      container.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Curating recommendations...</div>`;
 
       try {
         const json = await apiFetch(`/recommendations/?id=${encodeURIComponent(seedTrack.id)}`);
@@ -2268,7 +2253,7 @@
 
     function renderDownloadsView() {
       const sub = document.getElementById('downloadsSubtitle');
-      if (sub) sub.textContent = `${state.downloads.length} tracks downloaded from ${state.apiBase}`;
+      if (sub) sub.textContent = `${state.downloads.length} tracks saved to your device`;
       const container = document.getElementById('downloadsTracksContainer');
       if (container) renderTrackList(container, state.downloads, { allowQueuePlay: true });
     }
@@ -2610,7 +2595,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'idk-music-library.json';
+        a.download = 'hifi-player-library.json';
         a.click();
         URL.revokeObjectURL(url);
         showToast('Exported library backup', 'success');
@@ -2807,7 +2792,7 @@
         saveState();
         closeModal('settingsModal');
         checkApiHealth();
-        showToast('Saved appearance & API settings', 'success');
+        showToast('Saved player preferences', 'success');
       });
 
       document.getElementById('pingApiBtn').addEventListener('click', checkApiHealth);
