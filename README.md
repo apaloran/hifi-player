@@ -1,6 +1,6 @@
-# idk — Minimalist Hi-Fi Tidal Music Player (`https://h.shy.cx/`)
+# HiFi Player
 
-A minimalist, themeable web music player and lossless track downloader built for the Tidal Hi-Fi API (`https://h.shy.cx/`).
+A minimalist, themeable web music player and lossless track downloader built for the Tidal Hi-Fi API.
 
 ## Features
 
