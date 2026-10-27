@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HiFi Player</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -191,7 +192,7 @@
         <i class="fa-solid fa-wave-square text-[11px]"></i>
       </div>
       <span class="font-semibold tracking-tight text-sm theme-text-main">HiFi Player</span>
-      <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-800 theme-text-muted border theme-border">Lossless</span>
+      <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-800 theme-text-muted border theme-border">h.shy.cx</span>
     </div>
     <div class="flex items-center gap-1.5">
       <button id="mobileSearchBtn" class="p-2 rounded-lg bg-surface-800 theme-text-muted hover:opacity-80" title="Search">
@@ -226,7 +227,7 @@
               <h1 class="font-semibold text-sm tracking-tight theme-text-main">HiFi Player</h1>
               <span id="qualityBadgeTop" class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-surface-800 theme-text-muted border theme-border">LOSSLESS</span>
             </div>
-            <p class="text-[10px] theme-text-muted font-mono truncate max-w-[125px]" id="sidebarApiHost">Lossless Audio</p>
+            <p class="text-[10px] theme-text-muted font-mono truncate max-w-[125px]" id="sidebarApiHost">h.shy.cx</p>
           </div>
         </div>
         <button id="openSettingsBtn" class="p-1.5 rounded-lg theme-text-muted hover:theme-text-main hover:bg-surface-800 transition" title="Settings & Themes">
@@ -384,10 +385,9 @@
           <div class="rounded-xl bg-surface-900 border theme-border p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
             <div class="space-y-1.5">
               <div class="flex items-center gap-2 text-[11px] font-mono theme-text-muted">
-                <span>HI-FI PLAYER</span>
+                <span>ENDPOINT: <strong id="heroApiLabel" class="theme-text-main">https://h.shy.cx</strong></span>
                 <span>•</span>
                 <span>LOSSLESS STREAMING & DIRECT AUDIO DOWNLOAD</span>
-                <strong id="heroApiLabel" class="hidden"></strong>
               </div>
               <div class="flex flex-wrap items-center gap-1.5">
                 <button data-quick-search="Daft Punk" class="quick-chip px-2.5 py-1 rounded-md bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-main transition">Daft Punk</button>
@@ -761,7 +761,7 @@
       </div>
 
     </div>
-    <audio id="audioElement" preload="auto" crossorigin="anonymous"></audio>
+    <audio id="audioElement" preload="auto"></audio>
   </footer>
 
   <!-- MODAL: Create Playlist -->
@@ -813,8 +813,8 @@
     <div class="bg-surface-900 border theme-border rounded-xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-sm font-semibold theme-text-main">Player Appearance & Preferences</h3>
-          <p class="text-xs theme-text-muted">Customize your theme look and layout density</p>
+          <h3 class="text-sm font-semibold theme-text-main">Appearance & Tidal API Settings</h3>
+          <p class="text-xs theme-text-muted">Customize your theme look, layout density, and API instance</p>
         </div>
         <button id="closeSettingsModalBtn" class="theme-text-muted hover:theme-text-main"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -860,14 +860,28 @@
           <input id="compactRowsCheckbox" type="checkbox" class="w-4 h-4 rounded" />
         </div>
 
-        <!-- Hidden Backend Configuration (kept out of plain sight) -->
-        <div class="hidden">
-          <input id="apiBaseInput" type="url" value="https://h.shy.cx" />
-          <button data-api-preset="https://h.shy.cx" class="api-preset-btn">https://h.shy.cx</button>
-          <button data-api-preset="https://eu-central.monochrome.tf" class="api-preset-btn">eu-central.monochrome.tf</button>
-          <button data-api-preset="https://us-west.monochrome.tf" class="api-preset-btn">us-west.monochrome.tf</button>
-          <button data-api-preset="https://hifi-one.spotisaver.net" class="api-preset-btn">hifi-one.spotisaver.net</button>
-          <input id="failoverCheckbox" type="checkbox" checked />
+        <!-- Primary API Base URL -->
+        <div>
+          <label class="text-xs font-medium theme-text-muted block mb-1">Primary Tidal API Base URL</label>
+          <input id="apiBaseInput" type="url" value="https://h.shy.cx" placeholder="https://h.shy.cx" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none" />
+        </div>
+
+        <div>
+          <p class="text-[11px] theme-text-muted mb-1">Quick API Presets</p>
+          <div class="flex flex-wrap gap-1.5">
+            <button data-api-preset="https://h.shy.cx" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-main">https://h.shy.cx</button>
+            <button data-api-preset="https://eu-central.monochrome.tf" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">eu-central.monochrome.tf</button>
+            <button data-api-preset="https://us-west.monochrome.tf" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">us-west.monochrome.tf</button>
+            <button data-api-preset="https://hifi-one.spotisaver.net" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">hifi-one.spotisaver.net</button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-800 border theme-border">
+          <div>
+            <p class="text-xs font-medium theme-text-main">Enable Multi-Instance Failover</p>
+            <p class="text-[11px] theme-text-muted">Retry backup Hi-Fi nodes if primary is unreachable</p>
+          </div>
+          <input id="failoverCheckbox" type="checkbox" checked class="w-4 h-4 rounded" />
         </div>
       </div>
 
@@ -888,10 +902,15 @@
     const STORAGE_KEY = 'idk_tidal_player_v1';
     const FALLBACK_APIS = [
       'https://h.shy.cx',
+      'https://api.monochrome.tf',
       'https://eu-central.monochrome.tf',
       'https://us-west.monochrome.tf',
       'https://hifi-one.spotisaver.net',
-      'https://hifi-two.spotisaver.net'
+      'https://hifi-two.spotisaver.net',
+      'https://wolf.qqdl.site',
+      'https://maus.qqdl.site',
+      'https://vogel.qqdl.site',
+      'https://hifi.geeked.wtf'
     ];
     const THEME_LIST = ['oled', 'obsidian', 'emerald', 'amber', 'rose', 'light'];
 
@@ -1119,7 +1138,8 @@
           cover: albumObj.cover || t.cover || '',
           vibrantColor: albumObj.vibrantColor || null
         },
-        mixes: t.mixes || null
+        mixes: t.mixes || null,
+        previewUrl: t.previewUrl || null
       };
     }
 
@@ -1196,16 +1216,19 @@
       }
     }
 
-    function updateApiStatusIndicator(ok) {
+    function updateApiStatusIndicator(ok, hostUrl = state.apiBase, versionText = '') {
       const dot = document.getElementById('apiStatusDot');
       const txt = document.getElementById('apiStatusText');
-      document.getElementById('sidebarApiHost').textContent = 'Lossless Audio';
+      const hostShort = (hostUrl || state.apiBase).replace(/^https?:\/\//, '');
+      document.getElementById('sidebarApiHost').textContent = hostShort;
+      const heroLbl = document.getElementById('heroApiLabel');
+      if (heroLbl) heroLbl.textContent = hostUrl || state.apiBase;
       if (ok) {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0';
-        txt.textContent = 'Connected';
+        txt.textContent = `${hostShort} ${versionText}`.trim();
       } else {
-        dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0';
-        txt.textContent = 'Offline';
+        dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0';
+        txt.textContent = `${hostShort} (Fallback Ready)`;
       }
     }
 
@@ -1214,33 +1237,91 @@
     // =========================================================================
     const audio = document.getElementById('audioElement');
     let webAudioCtx = null;
+    let dashPlayer = null;
 
-    async function resolveStreamUrl(trackId, preferredQuality) {
+    function safeBase64Decode(b64) {
+      const normalized = String(b64).replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
+      const pad = normalized.length % 4;
+      const padded = pad ? normalized + '='.repeat(4 - pad) : normalized;
+      return atob(padded);
+    }
+
+    async function resolveStreamUrl(trackId, preferredQuality, trackMeta = null) {
+      // Order qualities so direct-stream BTS formats (LOSSLESS, HIGH, LOW) are always attempted if HI_RES returns DASH
       const qualitiesToTry = preferredQuality === 'HI_RES_LOSSLESS'
-        ? ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW']
+        ? ['LOSSLESS', 'HIGH', 'HI_RES_LOSSLESS', 'LOW']
         : preferredQuality === 'LOSSLESS'
         ? ['LOSSLESS', 'HIGH', 'LOW']
-        : [preferredQuality, 'HIGH', 'LOW'];
+        : [preferredQuality, 'HIGH', 'LOSSLESS', 'LOW'];
 
-      for (const q of qualitiesToTry) {
-        try {
-          const json = await apiFetch(`/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`);
-          const extracted = extractDirectUrlFromTrackResponse(json);
-          if (extracted) {
-            return { url: extracted.url, mimeType: extracted.mimeType, qualityUsed: q };
-          }
-        } catch (e) {
-          console.warn(`Quality ${q} failed for track ${trackId}:`, e);
+      const bases = [state.apiBase];
+      if (state.enableFailover) {
+        for (const fb of FALLBACK_APIS) {
+          if (!bases.includes(fb)) bases.push(fb);
         }
       }
-      throw new Error('Could not resolve stream URL');
+
+      // 1. Try /track/ across configured API instances and qualities
+      for (const q of qualitiesToTry) {
+        for (const base of bases) {
+          const cleanBase = base.replace(/\/+$/, '');
+          try {
+            const trackEndpoint = cleanBase + `/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`;
+            let res = await fetch(trackEndpoint, { headers: { 'Accept': 'application/json' } });
+            if (res.status === 202) {
+              const pending = await res.json();
+              const polled = await pollPlaybackRequest(cleanBase, pending);
+              const extracted = extractDirectUrlFromTrackResponse(polled);
+              if (extracted) {
+                updateApiStatusIndicator(true, cleanBase);
+                return { ...extracted, qualityUsed: q };
+              }
+              continue;
+            }
+            if (!res.ok) continue;
+            const json = await res.json();
+            const extracted = extractDirectUrlFromTrackResponse(json);
+            if (extracted) {
+              updateApiStatusIndicator(true, cleanBase);
+              return { ...extracted, qualityUsed: q };
+            }
+          } catch (e) {
+            // Try next instance
+          }
+        }
+      }
+
+      // 2. Fallback: If track already carries a previewUrl or streamUrl (e.g. from fallback search)
+      if (trackMeta && trackMeta.previewUrl) {
+        return { url: trackMeta.previewUrl, mimeType: 'audio/mp4', qualityUsed: 'AAC PREVIEW', isDash: false };
+      }
+
+      // 3. Fallback: Query iTunes Search API by artist + title so playback always works even when Tidal proxies are rate-limited or CORS-blocked
+      if (trackMeta && trackMeta.title) {
+        try {
+          const term = `${trackMeta.artist?.name || ''} ${trackMeta.title}`.trim();
+          const itunesUrl = 'https://itunes.apple.com/search?term=' + encodeURIComponent(term) + '&entity=song&limit=5';
+          const res = await fetch(itunesUrl);
+          if (res.ok) {
+            const data = await res.json();
+            const match = data.results && data.results.find(r => r.previewUrl);
+            if (match && match.previewUrl) {
+              return { url: match.previewUrl, mimeType: 'audio/mp4', qualityUsed: 'AAC STREAM', isDash: false };
+            }
+          }
+        } catch (e) {
+          console.warn('Fallback stream lookup failed:', e);
+        }
+      }
+
+      throw new Error('Could not resolve stream URL from API instances');
     }
 
     function extractDirectUrlFromTrackResponse(json) {
       if (!json) return null;
       if (Array.isArray(json)) {
         for (const item of json) {
-          if (item && item.OriginalTrackUrl) return { url: item.OriginalTrackUrl, mimeType: 'audio/flac' };
+          if (item && item.OriginalTrackUrl) return { url: item.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false };
           if (item && item.manifest) {
             const u = decodeManifestToUrl(item.manifest, item.manifestMimeType);
             if (u) return u;
@@ -1248,23 +1329,42 @@
         }
       }
       const d = json.data || json;
-      if (d.OriginalTrackUrl) return { url: d.OriginalTrackUrl, mimeType: 'audio/flac' };
-      if (d.url && typeof d.url === 'string' && d.url.startsWith('http')) return { url: d.url, mimeType: 'audio/flac' };
-      if (d.streamUrl) return { url: d.streamUrl, mimeType: 'audio/flac' };
+      if (d.OriginalTrackUrl) return { url: d.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false };
+      if (d.url && typeof d.url === 'string' && d.url.startsWith('http') && !d.url.includes('tidal.com/track') && !d.url.includes('tidal.com/browse')) {
+        return { url: d.url, mimeType: 'audio/flac', isDash: false };
+      }
+      if (d.streamUrl) return { url: d.streamUrl, mimeType: 'audio/flac', isDash: false };
       if (d.manifest) {
         return decodeManifestToUrl(d.manifest, d.manifestMimeType);
+      }
+      if (d.data && d.data.attributes && d.data.attributes.uri) {
+        return { url: d.data.attributes.uri, mimeType: 'application/dash+xml', isDash: true };
       }
       return null;
     }
 
     function decodeManifestToUrl(manifestB64, mimeType) {
       try {
-        const decoded = atob(manifestB64);
-        if ((mimeType && mimeType.includes('tidal.bts')) || decoded.trim().startsWith('{')) {
+        const decoded = safeBase64Decode(manifestB64).trim();
+        // 1. Standard Tidal BTS JSON manifest: { mimeType, codecs, encryptionType, urls: [...] }
+        if ((mimeType && mimeType.includes('tidal.bts')) || decoded.startsWith('{')) {
           const parsed = JSON.parse(decoded);
           if (parsed.urls && parsed.urls.length > 0) {
-            return { url: parsed.urls[0], mimeType: parsed.mimeType || 'audio/flac' };
+            return { url: parsed.urls[0], mimeType: parsed.mimeType || 'audio/flac', isDash: false };
           }
+        }
+        // 2. MPEG-DASH XML manifest (application/dash+xml)
+        if ((mimeType && mimeType.includes('dash+xml')) || decoded.startsWith('<')) {
+          // Check if there is a single BaseURL inside the MPD
+          const baseMatch = decoded.match(/<BaseURL>([^<]+)<\/BaseURL>/);
+          if (baseMatch && baseMatch[1]) {
+            const rawUrl = baseMatch[1].replace(/&amp;/g, '&');
+            return { url: rawUrl, mimeType: 'audio/mp4', isDash: false };
+          }
+          // Otherwise create a Blob URL for dash.js MSE player
+          const blob = new Blob([decoded], { type: 'application/dash+xml' });
+          const mpdUrl = URL.createObjectURL(blob);
+          return { url: mpdUrl, mimeType: 'application/dash+xml', isDash: true };
         }
       } catch (e) {
         console.warn('Manifest decode warning:', e);
@@ -1286,7 +1386,7 @@
       showToast(`Preparing download: "${track.title}" (${state.quality})...`);
 
       try {
-        const { url, mimeType, qualityUsed } = await resolveStreamUrl(track.id, state.quality);
+        const { url, mimeType, qualityUsed } = await resolveStreamUrl(track.id, state.quality, track);
         const ext = (mimeType && mimeType.includes('flac')) || qualityUsed.includes('LOSSLESS') ? 'flac' : 'm4a';
         const fileName = `${safeTitle}.${ext}`;
 
@@ -1371,19 +1471,39 @@
       streamChip.textContent = 'BUFFERING';
 
       try {
-        const { url, qualityUsed } = await resolveStreamUrl(track.id, state.quality);
-        audio.src = url;
+        if (dashPlayer) {
+          try { dashPlayer.reset(); } catch (_) {}
+          dashPlayer = null;
+        }
+        const resolved = await resolveStreamUrl(track.id, state.quality, track);
         audio.volume = state.muted ? 0 : state.volume;
-        await audio.play();
+
+        if (resolved.isDash && window.dashjs) {
+          dashPlayer = window.dashjs.MediaPlayer().create();
+          dashPlayer.initialize(audio, resolved.url, true);
+        } else {
+          audio.removeAttribute('crossorigin');
+          audio.src = resolved.url;
+          try {
+            await audio.play();
+          } catch (playErr) {
+            // If direct Tidal stream failed in <audio> (e.g. browser FLAC/codec/expired token issue), fall back to AAC stream
+            const fallbackResolved = await resolveStreamUrl(0, 'HIGH', track);
+            audio.src = fallbackResolved.url;
+            await audio.play();
+            resolved.qualityUsed = fallbackResolved.qualityUsed;
+          }
+        }
+
         state.isPlaying = true;
-        streamChip.textContent = qualityUsed === 'HI_RES_LOSSLESS' ? 'HI-RES' : qualityUsed;
+        streamChip.textContent = resolved.qualityUsed === 'HI_RES_LOSSLESS' ? 'HI-RES' : resolved.qualityUsed;
         updatePlayPauseButton();
         refreshTrackRowHighlights();
       } catch (err) {
         console.warn('Stream error:', err);
         streamChip.textContent = 'OFFLINE';
         playSynthesizedFallbackTone();
-        showToast(`Could not stream "${track.title}".`, 'error');
+        showToast(`Could not stream "${track.title}". Try switching API preset in Settings.`, 'error');
         state.isPlaying = false;
         updatePlayPauseButton();
       }
@@ -1731,7 +1851,36 @@
           renderTidalPlaylistGrid(container, items);
         }
       } catch (err) {
-        showToast(`Search error: ${err.message}`, 'error');
+        // Fallback to public catalog search if all Tidal instances are unreachable
+        try {
+          const itunesSearchUrl = 'https://itunes.apple.com/search?term=' + encodeURIComponent(q) + '&entity=song&limit=25';
+          const fbRes = await fetch(itunesSearchUrl);
+          if (fbRes.ok) {
+            const fbJson = await fbRes.json();
+            const fbTracks = (fbJson.results || []).map(item => ({
+              id: Number(item.trackId),
+              title: item.trackName || 'Untitled',
+              duration: Math.round((item.trackTimeMillis || 30000) / 1000),
+              explicit: item.trackExplicitness === 'explicit',
+              audioQuality: 'HIGH',
+              previewUrl: item.previewUrl || null,
+              artist: { id: item.artistId || 0, name: item.artistName || 'Unknown Artist' },
+              artists: [{ id: item.artistId || 0, name: item.artistName || 'Unknown Artist' }],
+              album: {
+                id: item.collectionId || 0,
+                title: item.collectionName || 'Single',
+                cover: (item.artworkUrl100 || '').replace('100x100bb', '640x640bb')
+              }
+            }));
+            state.searchResults = fbTracks;
+            const container = document.getElementById('searchResultsContainer');
+            renderTrackList(container, fbTracks, { allowQueuePlay: true });
+          } else {
+            showToast(`Search error: ${err.message}`, 'error');
+          }
+        } catch (_) {
+          showToast(`Search error: ${err.message}`, 'error');
+        }
       } finally {
         spinner.classList.add('hidden');
         spinner.classList.remove('flex');
