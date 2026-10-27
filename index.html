@@ -381,15 +381,15 @@
 
         <!-- VIEW: HOME & SEARCH -->
         <section id="view-home" class="space-y-5">
-          <!-- Minimalist Strip Header -->
-          <div class="rounded-xl bg-surface-900 border theme-border p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
-            <div class="space-y-1.5">
-              <div class="flex items-center gap-2 text-[11px] font-mono theme-text-muted">
-                <span>ENDPOINT: <strong id="heroApiLabel" class="theme-text-main">https://h.shy.cx</strong></span>
+          <!-- Minimalist Status & Quick Actions Bar (Hidden quick chips for clean initial look, preserved in DOM) -->
+          <div class="rounded-xl bg-surface-900 border theme-border px-4 py-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono theme-text-muted">
+                <span>PRIMARY: <strong id="heroApiLabel" class="theme-text-main">https://h.shy.cx</strong></span>
                 <span>•</span>
-                <span>LOSSLESS STREAMING & DIRECT AUDIO DOWNLOAD</span>
+                <span>FALLBACK: <strong id="heroFallbackLabel" class="theme-text-main">astrasphe.re</strong></span>
               </div>
-              <div class="flex flex-wrap items-center gap-1.5">
+              <div class="hidden flex-wrap items-center gap-1.5">
                 <button data-quick-search="Daft Punk" class="quick-chip px-2.5 py-1 rounded-md bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-main transition">Daft Punk</button>
                 <button data-quick-search="Radiohead" class="quick-chip px-2.5 py-1 rounded-md bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-main transition">Radiohead</button>
                 <button data-quick-search="The Weeknd" class="quick-chip px-2.5 py-1 rounded-md bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-main transition">The Weeknd</button>
@@ -410,20 +410,52 @@
             </div>
           </div>
 
-          <!-- Search / Featured Results Container -->
-          <div class="space-y-2.5">
+          <!-- Search Results Section (Shown only when user searches) -->
+          <div id="homeSearchSection" class="hidden space-y-2.5">
             <div class="flex items-center justify-between border-b theme-border pb-2">
               <div>
-                <h3 id="searchResultsHeading" class="text-sm font-semibold theme-text-main">Featured Tracks</h3>
+                <h3 id="searchResultsHeading" class="text-sm font-semibold theme-text-main">Search Results</h3>
                 <p id="searchResultsSub" class="text-[11px] theme-text-muted font-mono">Click a track to play, or use row actions to like, queue, add to playlist, or download</p>
               </div>
-              <div id="searchLoadingSpinner" class="hidden items-center gap-1.5 text-xs theme-text-muted font-mono">
-                <i class="fa-solid fa-circle-notch fa-spin"></i>
-                <span>Loading...</span>
+              <div class="flex items-center gap-2">
+                <div id="searchLoadingSpinner" class="hidden items-center gap-1.5 text-xs theme-text-muted font-mono">
+                  <i class="fa-solid fa-circle-notch fa-spin"></i>
+                  <span>Loading...</span>
+                </div>
+                <button id="dismissSearchBtn" class="px-2.5 py-1 rounded-md bg-surface-900 hover:bg-surface-800 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">
+                  Back to Home Feed
+                </button>
               </div>
             </div>
 
             <div id="searchResultsContainer" class="space-y-1"></div>
+          </div>
+
+          <!-- Clean Home Listening-Based Recommendations Feed -->
+          <div id="homeFeedSection" class="space-y-4">
+            <div id="homeEmptyState" class="rounded-xl bg-surface-900/60 border theme-border px-6 py-12 text-center space-y-2.5">
+              <div class="w-10 h-10 rounded-full bg-surface-800 border theme-border mx-auto flex items-center justify-center theme-text-muted">
+                <i class="fa-solid fa-wave-square text-sm"></i>
+              </div>
+              <h3 class="text-sm font-semibold theme-text-main">Start Listening</h3>
+              <p class="text-xs theme-text-muted max-w-md mx-auto leading-relaxed">
+                Search for any song, artist, or album above and press play. As you listen, personalized recommendations based on your playback will automatically appear here.
+              </p>
+            </div>
+
+            <div id="homeListeningRecsSection" class="hidden space-y-2.5">
+              <div class="flex items-center justify-between border-b theme-border pb-2">
+                <div>
+                  <h3 id="homeRecsHeading" class="text-sm font-semibold theme-text-main">Recommended Based on Your Listening</h3>
+                  <p id="homeRecsSub" class="text-[11px] theme-text-muted font-mono">Updated automatically as you play tracks</p>
+                </div>
+                <div id="homeRecsSpinner" class="hidden items-center gap-1.5 text-xs theme-text-muted font-mono">
+                  <i class="fa-solid fa-circle-notch fa-spin"></i>
+                  <span>Updating...</span>
+                </div>
+              </div>
+              <div id="homeRecsContainer" class="space-y-1"></div>
+            </div>
           </div>
         </section>
 
@@ -860,28 +892,35 @@
           <input id="compactRowsCheckbox" type="checkbox" class="w-4 h-4 rounded" />
         </div>
 
-        <!-- Primary API Base URL (Locked strictly to https://h.shy.cx) -->
+        <!-- Primary API Base URL (Manual Entry or Quick Preset) -->
         <div>
-          <label class="text-xs font-medium theme-text-muted block mb-1">Tidal API Endpoint (Locked to h.shy.cx)</label>
-          <input id="apiBaseInput" type="url" value="https://h.shy.cx" readonly placeholder="https://h.shy.cx" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main opacity-80 cursor-not-allowed focus:outline-none" />
+          <label class="text-xs font-medium theme-text-muted block mb-1">Primary Tidal API Base URL (Manual or Preset)</label>
+          <input id="apiBaseInput" type="url" value="https://h.shy.cx" placeholder="Enter any Tidal Hi-Fi API URL (e.g. https://h.shy.cx)" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none focus:border-neutral-400" />
         </div>
 
         <div>
-          <p class="text-[11px] theme-text-muted mb-1">Active Endpoint</p>
+          <p class="text-[11px] theme-text-muted mb-1">Quick Manual API Presets (Click to select)</p>
           <div class="flex flex-wrap gap-1.5">
-            <button data-api-preset="https://h.shy.cx" class="api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-main">https://h.shy.cx</button>
-            <button data-api-preset="https://eu-central.monochrome.tf" class="hidden api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">eu-central.monochrome.tf</button>
-            <button data-api-preset="https://us-west.monochrome.tf" class="hidden api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">us-west.monochrome.tf</button>
-            <button data-api-preset="https://hifi-one.spotisaver.net" class="hidden api-preset-btn px-2 py-1 rounded bg-surface-800 border theme-border text-[11px] font-mono theme-text-muted">hifi-one.spotisaver.net</button>
+            <button data-api-preset="https://h.shy.cx" class="api-preset-btn px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] font-mono theme-text-main">https://h.shy.cx</button>
+            <button data-api-preset="https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re" class="api-preset-btn px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] font-mono theme-text-main">astrasphe.re (Fallback)</button>
+            <button data-api-preset="https://eu-central.monochrome.tf" class="api-preset-btn px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] font-mono theme-text-muted">eu-central.monochrome.tf</button>
+            <button data-api-preset="https://us-west.monochrome.tf" class="api-preset-btn px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] font-mono theme-text-muted">us-west.monochrome.tf</button>
+            <button data-api-preset="https://hifi-one.spotisaver.net" class="api-preset-btn px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] font-mono theme-text-muted">hifi-one.spotisaver.net</button>
           </div>
         </div>
 
-        <div class="hidden items-center justify-between p-2.5 rounded-lg bg-surface-800 border theme-border">
+        <!-- Fallback API Configuration -->
+        <div>
+          <label class="text-xs font-medium theme-text-muted block mb-1">Fallback API Base URL</label>
+          <input id="fallbackApiInput" type="url" value="https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re" placeholder="https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none focus:border-neutral-400" />
+        </div>
+
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-800 border theme-border">
           <div>
-            <p class="text-xs font-medium theme-text-main">Enable Multi-Instance Failover</p>
-            <p class="text-[11px] theme-text-muted">Retry backup Hi-Fi nodes if primary is unreachable</p>
+            <p class="text-xs font-medium theme-text-main">Enable Automatic Fallback</p>
+            <p class="text-[11px] theme-text-muted">Use fallback API (astrasphe.re) if the primary API fails</p>
           </div>
-          <input id="failoverCheckbox" type="checkbox" class="w-4 h-4 rounded" />
+          <input id="failoverCheckbox" type="checkbox" checked class="w-4 h-4 rounded" />
         </div>
       </div>
 
@@ -899,66 +938,17 @@
     // =========================================================================
     // STATE & STORAGE MANAGEMENT
     // =========================================================================
-    const STORAGE_KEY = 'idk_tidal_player_v1';
+    const STORAGE_KEY = 'idk_tidal_player_v2';
     const API_BASE = 'https://h.shy.cx';
+    const FALLBACK_API_BASE = 'https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re';
     const THEME_LIST = ['oled', 'obsidian', 'emerald', 'amber', 'rose', 'light'];
 
-    const DEFAULT_SEED_TRACKS = [
-      {
-        id: 144371283,
-        title: "Don't Look Back In Anger",
-        duration: 328,
-        explicit: true,
-        audioQuality: 'LOSSLESS',
-        artist: { id: 109, name: 'Oasis' },
-        album: { id: 144371273, title: 'Familiar To Millions (Live)', cover: '8f2d544e-2452-46de-ba70-25498434e2ef' },
-        mixes: { TRACK_MIX: '0010f77179063ef106e2efaac9507a' }
-      },
-      {
-        id: 58990511,
-        title: 'Airbag',
-        duration: 287,
-        explicit: false,
-        audioQuality: 'LOSSLESS',
-        artist: { id: 64518, name: 'Radiohead' },
-        album: { id: 58990510, title: 'OK Computer', cover: 'e77e4cc0-6cd0-4522-807d-88aeac488065' },
-        mixes: { TRACK_MIX: '0015963a9a23be922134195a634872' }
-      },
-      {
-        id: 58990513,
-        title: 'Subterranean Homesick Alien',
-        duration: 267,
-        explicit: false,
-        audioQuality: 'LOSSLESS',
-        artist: { id: 64518, name: 'Radiohead' },
-        album: { id: 58990510, title: 'OK Computer', cover: 'e77e4cc0-6cd0-4522-807d-88aeac488065' },
-        mixes: { TRACK_MIX: '0019a6f811ccf59fd0346967a1dea7' }
-      },
-      {
-        id: 39249713,
-        title: 'Uptown Funk (feat. Bruno Mars)',
-        duration: 270,
-        explicit: false,
-        audioQuality: 'HI_RES_LOSSLESS',
-        artist: { id: 8722, name: 'Mark Ronson' },
-        album: { id: 39249709, title: 'Uptown Special', cover: '2f507eba-07f8-4bf5-a32b-9aa5c1a9840d' },
-        mixes: { TRACK_MIX: '001f7dfc4bcd0b25da782de2e5045f' }
-      },
-      {
-        id: 37160635,
-        title: "Under Pressure (Live at Wembley '86)",
-        duration: 221,
-        explicit: false,
-        audioQuality: 'LOSSLESS',
-        artist: { id: 8992, name: 'Queen' },
-        album: { id: 37160628, title: 'Live At Wembley Stadium', cover: 'c810ba36-a324-4f11-ac82-ab7eeacefb64' },
-        mixes: { TRACK_MIX: '0013f3c9f7ced02e0d9a90e41d95a8' }
-      }
-    ];
+    const DEFAULT_SEED_TRACKS = [];
 
     const state = {
-      apiBase: 'https://h.shy.cx',
-      enableFailover: false,
+      apiBase: API_BASE,
+      fallbackApiBase: FALLBACK_API_BASE,
+      enableFailover: true,
       quality: 'LOSSLESS',
       theme: 'oled',
       compactRows: false,
@@ -977,39 +967,58 @@
       playlists: [
         {
           id: 'pl-default-1',
-          name: 'Hi-Fi Essentials',
-          description: 'Lossless reference tracks ready to stream',
+          name: 'My Favorites',
+          description: 'Custom playlist',
           createdAt: new Date().toISOString(),
-          tracks: [...DEFAULT_SEED_TRACKS]
+          tracks: []
         }
       ],
       savedAlbums: [],
       history: [],
       downloads: [],
       // UI Transient state
-      searchResults: [...DEFAULT_SEED_TRACKS],
+      searchResults: [],
+      activeSearchQuery: '',
       searchMode: 's',
       recommendations: [],
+      lastRecSeedTrack: null,
       activePlaylistId: 'pl-default-1',
       pendingTrackForPlaylist: null,
       lyricsLines: []
     };
+
+    function cleanUrl(u) {
+      return String(u || '').trim().replace(/\/+$/, '');
+    }
+
+    function formatShortHost(urlStr) {
+      try {
+        const u = new URL(urlStr);
+        if (u.hostname.endsWith('astrasphe.re')) return 'astrasphe.re';
+        return u.hostname;
+      } catch (_) {
+        return String(urlStr || '').replace(/^https?:\/\//, '').split('/')[0] || 'h.shy.cx';
+      }
+    }
 
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const saved = JSON.parse(raw);
-        state.apiBase = API_BASE;
-        state.enableFailover = false;
+        if (saved.apiBase) state.apiBase = cleanUrl(saved.apiBase);
+        if (saved.fallbackApiBase) state.fallbackApiBase = cleanUrl(saved.fallbackApiBase);
+        if (typeof saved.enableFailover === 'boolean') state.enableFailover = saved.enableFailover;
         if (saved.quality) state.quality = saved.quality;
         if (saved.theme && THEME_LIST.includes(saved.theme)) state.theme = saved.theme;
         if (typeof saved.compactRows === 'boolean') state.compactRows = saved.compactRows;
         if (Array.isArray(saved.likedSongs)) state.likedSongs = saved.likedSongs;
-        if (Array.isArray(saved.playlists) && saved.playlists.length) state.playlists = saved.playlists;
+        if (Array.isArray(saved.playlists)) state.playlists = saved.playlists;
         if (Array.isArray(saved.savedAlbums)) state.savedAlbums = saved.savedAlbums;
         if (Array.isArray(saved.history)) state.history = saved.history;
         if (Array.isArray(saved.downloads)) state.downloads = saved.downloads;
+        if (Array.isArray(saved.recommendations)) state.recommendations = saved.recommendations;
+        if (saved.lastRecSeedTrack) state.lastRecSeedTrack = saved.lastRecSeedTrack;
         if (typeof saved.shuffle === 'boolean') state.shuffle = saved.shuffle;
         if (saved.repeat) state.repeat = saved.repeat;
         if (typeof saved.volume === 'number') state.volume = saved.volume;
@@ -1022,6 +1031,7 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           apiBase: state.apiBase,
+          fallbackApiBase: state.fallbackApiBase,
           enableFailover: state.enableFailover,
           quality: state.quality,
           theme: state.theme,
@@ -1031,6 +1041,8 @@
           savedAlbums: state.savedAlbums,
           history: state.history.slice(0, 100),
           downloads: state.downloads.slice(0, 100),
+          recommendations: state.recommendations.slice(0, 40),
+          lastRecSeedTrack: state.lastRecSeedTrack,
           shuffle: state.shuffle,
           repeat: state.repeat,
           volume: state.volume
@@ -1133,14 +1145,26 @@
     }
 
     // =========================================================================
-    // TIDAL HI-FI API CLIENT (STRICTLY https://h.shy.cx — NO FALLBACKS)
+    // TIDAL HI-FI API CLIENT (PRIMARY + astrasphe.re FALLBACK + MANUAL APIS)
     // =========================================================================
+    function getOrderedApiBases() {
+      const primary = cleanUrl(state.apiBase || API_BASE);
+      const fallback = cleanUrl(state.fallbackApiBase || FALLBACK_API_BASE);
+      const list = [primary];
+      if (state.enableFailover) {
+        if (fallback && !list.includes(fallback)) list.push(fallback);
+        if (API_BASE && !list.includes(API_BASE)) list.push(API_BASE);
+      }
+      return list;
+    }
+
     async function apiFetch(pathAndQuery, options = {}) {
-      const cleanBase = API_BASE;
-      const reqUrl = cleanBase + (pathAndQuery.startsWith('/') ? '' : '/') + pathAndQuery;
+      const bases = getOrderedApiBases();
       let lastErr = null;
 
-      for (let attempt = 0; attempt < 2; attempt++) {
+      for (const base of bases) {
+        const cleanBase = cleanUrl(base);
+        const reqUrl = cleanBase + (pathAndQuery.startsWith('/') ? '' : '/') + pathAndQuery;
         try {
           const response = await fetch(reqUrl, {
             method: options.method || 'GET',
@@ -1154,13 +1178,8 @@
             return resolved;
           }
 
-          if ((response.status === 429 || response.status === 503) && attempt === 0) {
-            await new Promise(r => setTimeout(r, 900));
-            continue;
-          }
-
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status} from ${cleanBase}`);
+            throw new Error(`HTTP ${response.status} from ${formatShortHost(cleanBase)}`);
           }
 
           const json = await response.json();
@@ -1174,14 +1193,11 @@
           return json;
         } catch (err) {
           lastErr = err;
-          if (attempt === 0) {
-            await new Promise(r => setTimeout(r, 400));
-          }
         }
       }
 
-      updateApiStatusIndicator(false, cleanBase);
-      throw lastErr || new Error('Request to https://h.shy.cx failed');
+      updateApiStatusIndicator(false, state.apiBase);
+      throw lastErr || new Error('API request failed');
     }
 
     async function pollPlaybackRequest(baseUrl, pendingObj) {
@@ -1197,7 +1213,7 @@
           if (!data || data.status !== 'pending') return data;
         }
       }
-      throw new Error('Playback queue on h.shy.cx timed out');
+      throw new Error('Playback queue timed out');
     }
 
     async function checkApiHealth() {
@@ -1205,33 +1221,42 @@
       const txt = document.getElementById('apiStatusText');
       dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 animate-pulse';
       txt.textContent = 'Checking...';
+      updateEndpointLabels();
       try {
         const data = await apiFetch('/');
         const ver = data && data.version ? `v${data.version}` : 'Online';
-        updateApiStatusIndicator(true, API_BASE, ver);
+        updateApiStatusIndicator(true, state.apiBase, ver);
       } catch (e) {
-        updateApiStatusIndicator(false, API_BASE);
+        updateApiStatusIndicator(false, state.apiBase);
       }
     }
 
-    function updateApiStatusIndicator(ok, hostUrl = API_BASE, versionText = '') {
+    function updateEndpointLabels() {
+      const primaryShort = formatShortHost(state.apiBase);
+      const fallbackShort = state.enableFailover ? formatShortHost(state.fallbackApiBase || FALLBACK_API_BASE) : 'Disabled';
+      document.getElementById('sidebarApiHost').textContent = primaryShort;
+      const heroLbl = document.getElementById('heroApiLabel');
+      if (heroLbl) heroLbl.textContent = state.apiBase;
+      const fbLbl = document.getElementById('heroFallbackLabel');
+      if (fbLbl) fbLbl.textContent = fallbackShort;
+    }
+
+    function updateApiStatusIndicator(ok, hostUrl = state.apiBase, versionText = '') {
       const dot = document.getElementById('apiStatusDot');
       const txt = document.getElementById('apiStatusText');
-      const hostShort = 'h.shy.cx';
-      document.getElementById('sidebarApiHost').textContent = hostShort;
-      const heroLbl = document.getElementById('heroApiLabel');
-      if (heroLbl) heroLbl.textContent = API_BASE;
+      const hostShort = formatShortHost(hostUrl || state.apiBase);
+      updateEndpointLabels();
       if (ok) {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0';
         txt.textContent = `${hostShort} ${versionText}`.trim();
       } else {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0';
-        txt.textContent = `${hostShort} (Unreachable)`;
+        txt.textContent = `${hostShort} (Offline)`;
       }
     }
 
     // =========================================================================
-    // STREAM URL RESOLUTION, PLAYBACK & DIRECT DOWNLOAD ENGINE (h.shy.cx ONLY)
+    // STREAM URL RESOLUTION, PLAYBACK & DIRECT DOWNLOAD ENGINE
     // =========================================================================
     const audio = document.getElementById('audioElement');
     let dashPlayer = null;
@@ -1246,7 +1271,6 @@
     }
 
     async function resolveStreamUrl(trackId, preferredQuality, options = {}) {
-      // Build ordered quality list on https://h.shy.cx
       const baseOrder = preferredQuality === 'HI_RES_LOSSLESS'
         ? ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW']
         : preferredQuality === 'LOSSLESS'
@@ -1261,26 +1285,47 @@
         if (!qualitiesToTry.includes(q)) qualitiesToTry.push(q);
       }
 
+      const bases = getOrderedApiBases();
       let dashFallbackCandidate = null;
       let lastError = null;
 
-      for (const q of qualitiesToTry) {
-        try {
-          const json = await apiFetch(`/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`);
-          const extracted = extractDirectUrlFromTrackResponse(json);
-          if (!extracted || !extracted.url) continue;
+      // Try each API instance (Primary -> Fallback astrasphe.re) across the quality chain
+      for (const base of bases) {
+        const cleanBase = cleanUrl(base);
+        for (const q of qualitiesToTry) {
+          try {
+            const trackUrl = cleanBase + `/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`;
+            const res = await fetch(trackUrl, { headers: { 'Accept': 'application/json' } });
+            let json = null;
 
-          // Prefer direct single-file stream URLs (application/vnd.tidal.bts) because they play
-          // natively in HTML5 <audio> without MSE/DASH CORS or FLAC-in-fMP4 SourceBuffer freezes.
-          if (!extracted.isDash) {
-            return { ...extracted, qualityUsed: extracted.actualQuality || q };
-          }
+            if (res.status === 202) {
+              const pending = await res.json();
+              json = await pollPlaybackRequest(cleanBase, pending);
+            } else if (res.ok) {
+              json = await res.json();
+              if (json && json.status === 'pending' && (json.statusUrl || json.requestId)) {
+                json = await pollPlaybackRequest(cleanBase, json);
+              }
+            } else {
+              continue;
+            }
 
-          if (!dashFallbackCandidate && !options.forceDirectBts) {
-            dashFallbackCandidate = { ...extracted, qualityUsed: extracted.actualQuality || q };
+            const extracted = extractDirectUrlFromTrackResponse(json);
+            if (!extracted || !extracted.url) continue;
+
+            updateApiStatusIndicator(true, cleanBase);
+
+            // Prefer direct single-file BTS streams (application/vnd.tidal.bts) for reliable native <audio> playback
+            if (!extracted.isDash) {
+              return { ...extracted, qualityUsed: extracted.actualQuality || q, hostUsed: cleanBase };
+            }
+
+            if (!dashFallbackCandidate && !options.forceDirectBts) {
+              dashFallbackCandidate = { ...extracted, qualityUsed: extracted.actualQuality || q, hostUsed: cleanBase };
+            }
+          } catch (err) {
+            lastError = err;
           }
-        } catch (err) {
-          lastError = err;
         }
       }
 
@@ -1288,7 +1333,7 @@
         return dashFallbackCandidate;
       }
 
-      throw lastError || new Error('Could not resolve playable stream from https://h.shy.cx');
+      throw lastError || new Error('Could not resolve playable stream from configured API endpoints');
     }
 
     function extractDirectUrlFromTrackResponse(json) {
@@ -1323,7 +1368,6 @@
     function decodeManifestToUrl(manifestB64, mimeType, reportedQuality = null) {
       try {
         const decoded = safeBase64Decode(manifestB64).trim();
-        // 1. Standard Tidal BTS JSON manifest: { mimeType, codecs, encryptionType, urls: [...] }
         if ((mimeType && mimeType.includes('tidal.bts')) || decoded.startsWith('{')) {
           const parsed = JSON.parse(decoded);
           if (parsed.encryptionType && parsed.encryptionType !== 'NONE') {
@@ -1342,7 +1386,6 @@
             };
           }
         }
-        // 2. MPEG-DASH XML manifest (application/dash+xml)
         if ((mimeType && mimeType.includes('dash+xml')) || decoded.startsWith('<')) {
           const baseMatch = decoded.match(/<BaseURL>([^<]+)<\/BaseURL>/);
           if (baseMatch && baseMatch[1]) {
@@ -1436,7 +1479,6 @@
         return;
       }
 
-      // Direct stream URL from application/vnd.tidal.bts
       audio.src = resolved.url;
       audio.load();
       await audio.play();
@@ -1453,7 +1495,7 @@
       }
 
       const safeTitle = `${track.artist.name} - ${track.title}`.replace(/[\\/:*?"<>|]/g, '_');
-      showToast(`Preparing download from h.shy.cx: "${track.title}"...`);
+      showToast(`Preparing download: "${track.title}"...`);
 
       try {
         const { url, mimeType, qualityUsed } = await resolveStreamUrl(track.id, state.quality, { forceDirectBts: true });
@@ -1494,7 +1536,7 @@
         renderDownloadsView();
         showToast(`Downloaded "${fileName}"`, 'success');
       } catch (err) {
-        showToast(`Download failed on h.shy.cx: ${err.message}`, 'error');
+        showToast(`Download failed: ${err.message}`, 'error');
       } finally {
         if (triggerBtn) {
           triggerBtn.disabled = false;
@@ -1527,6 +1569,9 @@
       renderQueue();
       refreshTrackRowHighlights();
 
+      // Immediately trigger listening-based recommendations from the played track
+      loadRecommendations(track, { fromPlayback: true });
+
       const streamChip = document.getElementById('streamStatusChip');
       streamChip.textContent = 'LOADING';
       const playPauseIcon = document.getElementById('playPauseIcon');
@@ -1544,7 +1589,6 @@
           await startAudioPlayback(resolved);
         } catch (firstPlayErr) {
           if (reqId !== currentPlayReqId) return;
-          // If LOSSLESS FLAC or DASH stream failed to play in <audio>, retry HIGH (320kbps AAC BTS stream) on https://h.shy.cx
           resolved = await resolveStreamUrl(track.id, 'HIGH', {
             excludeQuality: resolved.qualityUsed,
             forceDirectBts: true
@@ -1561,12 +1605,12 @@
         loadLyricsForTrack(track.id);
       } catch (err) {
         if (reqId !== currentPlayReqId) return;
-        console.warn('Stream error on h.shy.cx:', err);
+        console.warn('Stream error:', err);
         streamChip.textContent = 'ERROR';
         state.isPlaying = false;
         updatePlayPauseButton();
         refreshTrackRowHighlights();
-        showToast(`Playback failed on h.shy.cx for "${track.title}": ${err.message}`, 'error');
+        showToast(`Playback failed for "${track.title}": ${err.message}`, 'error');
       }
     }
 
@@ -1595,7 +1639,19 @@
 
     function togglePlayPause() {
       if (!state.queue.length) {
-        setQueueAndPlay(state.searchResults.length ? state.searchResults : DEFAULT_SEED_TRACKS, 0);
+        const pool = state.searchResults.length
+          ? state.searchResults
+          : state.recommendations.length
+          ? state.recommendations
+          : state.history.length
+          ? state.history
+          : state.likedSongs;
+        if (!pool.length) {
+          showToast('Search for a song above to start listening');
+          document.getElementById('searchInput')?.focus();
+          return;
+        }
+        setQueueAndPlay(pool, 0);
         return;
       }
       if (state.queueIndex === -1) {
@@ -1891,10 +1947,42 @@
     // =========================================================================
     // SEARCH, ALBUMS, ARTISTS, TIDAL PLAYLISTS & RECOMMENDATIONS
     // =========================================================================
+    function renderHomeFeed() {
+      const searchSec = document.getElementById('homeSearchSection');
+      const emptyState = document.getElementById('homeEmptyState');
+      const recsSec = document.getElementById('homeListeningRecsSection');
+      const recsContainer = document.getElementById('homeRecsContainer');
+      const recsHeading = document.getElementById('homeRecsHeading');
+      const recsSub = document.getElementById('homeRecsSub');
+
+      const hasSearch = Boolean(state.activeSearchQuery);
+      if (searchSec) searchSec.classList.toggle('hidden', !hasSearch);
+
+      const hasListeningRecs = Array.isArray(state.recommendations) && state.recommendations.length > 0;
+      if (emptyState) emptyState.classList.toggle('hidden', hasListeningRecs || hasSearch);
+      if (recsSec) recsSec.classList.toggle('hidden', !hasListeningRecs);
+
+      if (hasListeningRecs && recsContainer) {
+        const seed = state.lastRecSeedTrack || state.history[0];
+        if (seed && recsHeading && recsSub) {
+          recsHeading.textContent = 'Recommended Based on Your Listening';
+          recsSub.textContent = `Because you listened to "${seed.title}" — ${seed.artist.name}`;
+        }
+        renderTrackList(recsContainer, state.recommendations, { allowQueuePlay: true });
+      }
+    }
+
     async function performSearch(query, searchType = 's') {
       const q = (query || '').trim();
-      if (!q) return;
+      if (!q) {
+        state.activeSearchQuery = '';
+        renderHomeFeed();
+        return;
+      }
+      state.activeSearchQuery = q;
       switchView('home');
+      renderHomeFeed();
+
       const spinner = document.getElementById('searchLoadingSpinner');
       const heading = document.getElementById('searchResultsHeading');
       const sub = document.getElementById('searchResultsSub');
@@ -1926,7 +2014,7 @@
           renderTidalPlaylistGrid(container, items);
         }
       } catch (err) {
-        showToast(`Search failed on h.shy.cx: ${err.message}`, 'error');
+        showToast(`Search failed: ${err.message}`, 'error');
       } finally {
         spinner.classList.add('hidden');
         spinner.classList.remove('flex');
@@ -2077,22 +2165,45 @@
       }
     }
 
-    async function loadRecommendations(seedTrackOverride = null) {
+    async function loadRecommendations(seedTrackOverride = null, options = {}) {
       const container = document.getElementById('recsContainer');
       const label = document.getElementById('recSeedLabel');
       const selectEl = document.getElementById('recSeedSelect');
+      const homeSpinner = document.getElementById('homeRecsSpinner');
 
       let seedTrack = seedTrackOverride;
-      if (!seedTrack && selectEl.value) {
-        const pool = [...state.likedSongs, ...state.history, ...DEFAULT_SEED_TRACKS];
+      if (!seedTrack && selectEl && selectEl.value) {
+        const pool = [...state.history, ...state.likedSongs];
         seedTrack = pool.find(t => String(t.id) === String(selectEl.value));
       }
       if (!seedTrack) {
-        seedTrack = state.queue[state.queueIndex] || state.likedSongs[0] || state.history[0] || DEFAULT_SEED_TRACKS[0];
+        seedTrack = state.queue[state.queueIndex] || state.history[0] || state.likedSongs[0] || null;
       }
 
-      label.textContent = `Seed: "${seedTrack.title}" — ${seedTrack.artist.name} (#${seedTrack.id})`;
-      container.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Curating recommendations...</div>`;
+      if (!seedTrack) {
+        container.innerHTML = `
+          <div class="rounded-xl bg-surface-900 border theme-border p-8 text-center space-y-1.5">
+            <p class="text-xs theme-text-main font-medium">No listening history yet</p>
+            <p class="text-[11px] theme-text-muted">Play a song first to generate personalized recommendations.</p>
+          </div>
+        `;
+        renderHomeFeed();
+        return;
+      }
+
+      state.lastRecSeedTrack = seedTrack;
+      populateRecSeedSelect();
+
+      if (label) {
+        label.textContent = `Based on your listening: "${seedTrack.title}" — ${seedTrack.artist.name}`;
+      }
+      if (!options.fromPlayback && container) {
+        container.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Curating recommendations from "${escapeHtml(seedTrack.title)}"...</div>`;
+      }
+      if (homeSpinner) {
+        homeSpinner.classList.remove('hidden');
+        homeSpinner.classList.add('flex');
+      }
 
       try {
         const json = await apiFetch(`/recommendations/?id=${encodeURIComponent(seedTrack.id)}`);
@@ -2106,14 +2217,23 @@
 
         if (!tracks.length) {
           const fallbackJson = await apiFetch(`/search/?s=${encodeURIComponent(seedTrack.artist.name)}&limit=20`);
-          tracks = (fallbackJson?.data?.items || []).map(normalizeTrack).filter(Boolean);
+          tracks = (fallbackJson?.data?.items || []).map(normalizeTrack).filter(Boolean).filter(t => t.id !== seedTrack.id);
         }
 
         state.recommendations = tracks;
-        renderTrackList(container, tracks, { allowQueuePlay: true });
+        saveState();
+        if (container) renderTrackList(container, tracks, { allowQueuePlay: true });
+        renderHomeFeed();
       } catch (err) {
-        state.recommendations = [...DEFAULT_SEED_TRACKS];
-        renderTrackList(container, state.recommendations, { allowQueuePlay: true });
+        if (!state.recommendations.length && container) {
+          container.innerHTML = `<div class="p-4 text-xs text-rose-400">Could not load recommendations: ${escapeHtml(err.message)}</div>`;
+        }
+        renderHomeFeed();
+      } finally {
+        if (homeSpinner) {
+          homeSpinner.classList.add('hidden');
+          homeSpinner.classList.remove('flex');
+        }
       }
     }
 
@@ -2733,8 +2853,19 @@
       clearSearchBtn.addEventListener('click', () => {
         searchInput.value = '';
         clearSearchBtn.classList.add('hidden');
+        state.activeSearchQuery = '';
+        renderHomeFeed();
         searchInput.focus();
       });
+      const dismissSearchBtn = document.getElementById('dismissSearchBtn');
+      if (dismissSearchBtn) {
+        dismissSearchBtn.addEventListener('click', () => {
+          searchInput.value = '';
+          clearSearchBtn.classList.add('hidden');
+          state.activeSearchQuery = '';
+          renderHomeFeed();
+        });
+      }
 
       document.querySelectorAll('.quick-chip').forEach(chip => {
         chip.addEventListener('click', () => {
@@ -2962,9 +3093,11 @@
         searchInput.focus();
       });
 
-      // Settings modal
+      // Settings modal (Manual API URL + Fallback astrasphe.re configuration)
       const openSettings = () => {
         document.getElementById('apiBaseInput').value = state.apiBase;
+        const fbInput = document.getElementById('fallbackApiInput');
+        if (fbInput) fbInput.value = state.fallbackApiBase || FALLBACK_API_BASE;
         document.getElementById('failoverCheckbox').checked = state.enableFailover;
         document.getElementById('compactRowsCheckbox').checked = Boolean(state.compactRows);
         openModal('settingsModal');
@@ -2979,14 +3112,21 @@
         });
       });
       document.getElementById('saveSettingsModalBtn').addEventListener('click', () => {
-        state.apiBase = API_BASE;
-        state.enableFailover = false;
+        const rawPrimary = cleanUrl(document.getElementById('apiBaseInput').value);
+        if (rawPrimary) state.apiBase = rawPrimary;
+        const fbInput = document.getElementById('fallbackApiInput');
+        if (fbInput && cleanUrl(fbInput.value)) {
+          state.fallbackApiBase = cleanUrl(fbInput.value);
+        } else {
+          state.fallbackApiBase = FALLBACK_API_BASE;
+        }
+        state.enableFailover = document.getElementById('failoverCheckbox').checked;
         state.compactRows = document.getElementById('compactRowsCheckbox').checked;
         document.body.classList.toggle('compact-rows', Boolean(state.compactRows));
         saveState();
         closeModal('settingsModal');
         checkApiHealth();
-        showToast('Saved player preferences', 'success');
+        showToast(`API set to ${formatShortHost(state.apiBase)}`, 'success');
       });
 
       document.getElementById('pingApiBtn').addEventListener('click', checkApiHealth);
@@ -3035,10 +3175,13 @@
       updateShuffleRepeatUI();
       updateBadges();
       renderSidebarPlaylists();
-      renderTrackList(document.getElementById('searchResultsContainer'), state.searchResults, { allowQueuePlay: true });
+      renderHomeFeed();
       renderQueue();
       checkApiHealth();
-      performSearch('Daft Punk', 's');
+      // If the user has prior listening history from an earlier session, refresh listening-based recommendations
+      if (state.history.length > 0 && state.recommendations.length === 0) {
+        loadRecommendations(state.history[0], { fromPlayback: true });
+      }
     });
   </script>
 </body>
