@@ -922,6 +922,20 @@
           </div>
           <input id="failoverCheckbox" type="checkbox" checked class="w-4 h-4 rounded" />
         </div>
+
+        <!-- Live API & Stream Pickup Diagnostic -->
+        <div class="p-3 rounded-lg bg-surface-800/80 border theme-border space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium theme-text-main">API Stream Pickup Diagnostics</p>
+              <p class="text-[11px] theme-text-muted">Verify live /search/ and /track/ stream resolution on Primary & Fallback APIs</p>
+            </div>
+            <button id="testStreamPickupBtn" type="button" class="px-2.5 py-1 rounded-md bg-surface-700 hover:bg-surface-600 border theme-border text-[11px] font-mono theme-text-main transition">
+              Check Streams
+            </button>
+          </div>
+          <div id="apiDiagOutput" class="hidden text-[11px] font-mono theme-text-muted bg-surface-950/80 border theme-border rounded p-2 space-y-1 max-h-32 overflow-y-auto"></div>
+        </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-1">
@@ -1256,10 +1270,11 @@
     }
 
     // =========================================================================
-    // STREAM URL RESOLUTION, PLAYBACK & DIRECT DOWNLOAD ENGINE
+    // STREAM URL RESOLUTION, MPD fMP4 ENGINE, PLAYBACK & DOWNLOAD
     // =========================================================================
     const audio = document.getElementById('audioElement');
     let dashPlayer = null;
+    let activeMediaSourceUrl = null;
     let currentPlayReqId = 0;
 
     function safeBase64Decode(b64) {
@@ -1270,13 +1285,51 @@
       return atob(padded);
     }
 
+    function parseMpdSegments(mpdXml) {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(mpdXml, 'application/xml');
+        const segTpl = doc.querySelector('SegmentTemplate');
+        if (!segTpl) return null;
+
+        const initUrl = segTpl.getAttribute('initialization');
+        const mediaTpl = segTpl.getAttribute('media');
+        const startNum = parseInt(segTpl.getAttribute('startNumber') || '1', 10);
+        const rep = doc.querySelector('Representation');
+        const adapt = doc.querySelector('AdaptationSet');
+        const mimeType = (rep && rep.getAttribute('mimeType')) || (adapt && adapt.getAttribute('mimeType')) || 'audio/mp4';
+        const codecs = (rep && rep.getAttribute('codecs')) || 'flac';
+
+        if (!initUrl || !mediaTpl) return null;
+
+        const sNodes = segTpl.querySelectorAll('SegmentTimeline > S');
+        let totalSegments = 0;
+        sNodes.forEach(s => {
+          const repeat = parseInt(s.getAttribute('r') || '0', 10);
+          totalSegments += (repeat + 1);
+        });
+        if (totalSegments <= 0) totalSegments = 1;
+
+        const segmentUrls = [];
+        for (let i = 0; i < totalSegments; i++) {
+          const num = startNum + i;
+          segmentUrls.push(mediaTpl.replace(/\$Number\$/g, String(num)));
+        }
+
+        return { initUrl, segmentUrls, mimeType, codecs };
+      } catch (e) {
+        console.warn('MPD XML parse warning:', e);
+        return null;
+      }
+    }
+
     async function resolveStreamUrl(trackId, preferredQuality, options = {}) {
       const baseOrder = preferredQuality === 'HI_RES_LOSSLESS'
         ? ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW']
         : preferredQuality === 'LOSSLESS'
         ? ['LOSSLESS', 'HIGH', 'LOW']
         : preferredQuality === 'HIGH'
-        ? ['HIGH', 'LOW', 'LOSSLESS']
+        ? ['HIGH', 'LOSSLESS', 'LOW']
         : ['LOW', 'HIGH', 'LOSSLESS'];
 
       const qualitiesToTry = [];
@@ -1286,12 +1339,11 @@
       }
 
       const bases = getOrderedApiBases();
-      let dashFallbackCandidate = null;
       let lastError = null;
 
-      // Try each API instance (Primary -> Fallback astrasphe.re) across the quality chain
       for (const base of bases) {
         const cleanBase = cleanUrl(base);
+        // 1. Try /track/?id={id}&quality={q}
         for (const q of qualitiesToTry) {
           try {
             const trackUrl = cleanBase + `/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`;
@@ -1307,33 +1359,68 @@
                 json = await pollPlaybackRequest(cleanBase, json);
               }
             } else {
+              lastError = new Error(`HTTP ${res.status} from ${formatShortHost(cleanBase)}`);
               continue;
             }
 
             const extracted = extractDirectUrlFromTrackResponse(json);
-            if (!extracted || !extracted.url) continue;
+            if (!extracted) {
+              lastError = new Error(`Unrecognized manifest from ${formatShortHost(cleanBase)}`);
+              continue;
+            }
 
             updateApiStatusIndicator(true, cleanBase);
-
-            // Prefer direct single-file BTS streams (application/vnd.tidal.bts) for reliable native <audio> playback
-            if (!extracted.isDash) {
-              return { ...extracted, qualityUsed: extracted.actualQuality || q, hostUsed: cleanBase };
-            }
-
-            if (!dashFallbackCandidate && !options.forceDirectBts) {
-              dashFallbackCandidate = { ...extracted, qualityUsed: extracted.actualQuality || q, hostUsed: cleanBase };
-            }
+            return {
+              ...extracted,
+              qualityUsed: extracted.actualQuality || q,
+              hostUsed: cleanBase
+            };
           } catch (err) {
             lastError = err;
           }
         }
-      }
 
-      if (dashFallbackCandidate) {
-        return dashFallbackCandidate;
+        // 2. Fallback to newer /trackManifests/ endpoint on the same instance if /track/ failed
+        try {
+          const tmUrl = cleanBase + `/trackManifests/?id=${encodeURIComponent(trackId)}&formats=FLAC&formats=AACLC&formats=HEAACV1&uriScheme=DATA&usage=PLAYBACK`;
+          const tmRes = await fetch(tmUrl, { headers: { 'Accept': 'application/json' } });
+          if (tmRes.ok) {
+            const tmJson = await tmRes.json();
+            const extractedTm = extractFromTrackManifestsEndpoint(tmJson);
+            if (extractedTm) {
+              updateApiStatusIndicator(true, cleanBase);
+              return {
+                ...extractedTm,
+                qualityUsed: preferredQuality,
+                hostUsed: cleanBase
+              };
+            }
+          }
+        } catch (tmErr) {
+          if (!lastError) lastError = tmErr;
+        }
       }
 
       throw lastError || new Error('Could not resolve playable stream from configured API endpoints');
+    }
+
+    function extractFromTrackManifestsEndpoint(json) {
+      try {
+        const attrs = json?.data?.data?.attributes || json?.data?.attributes || json?.attributes;
+        if (!attrs || !attrs.uri) return null;
+        const uri = String(attrs.uri);
+        if (uri.startsWith('data:')) {
+          const commaIdx = uri.indexOf(',');
+          if (commaIdx !== -1) {
+            const b64 = uri.slice(commaIdx + 1);
+            return decodeManifestToUrl(b64, 'application/dash+xml', 'LOSSLESS');
+          }
+        }
+        if (uri.startsWith('http')) {
+          return { url: uri, mimeType: 'application/dash+xml', isDash: true, actualQuality: 'LOSSLESS' };
+        }
+      } catch (_) {}
+      return null;
     }
 
     function extractDirectUrlFromTrackResponse(json) {
@@ -1368,14 +1455,9 @@
     function decodeManifestToUrl(manifestB64, mimeType, reportedQuality = null) {
       try {
         const decoded = safeBase64Decode(manifestB64).trim();
+        // 1. Standard Tidal BTS JSON manifest: { mimeType, codecs, encryptionType, urls: [...] }
         if ((mimeType && mimeType.includes('tidal.bts')) || decoded.startsWith('{')) {
           const parsed = JSON.parse(decoded);
-          if (parsed.encryptionType && parsed.encryptionType !== 'NONE') {
-            return null;
-          }
-          if (parsed.codecs && (parsed.codecs === 'eac3' || parsed.codecs === 'ac-4')) {
-            return null;
-          }
           if (parsed.urls && parsed.urls.length > 0) {
             return {
               url: parsed.urls[0],
@@ -1386,6 +1468,7 @@
             };
           }
         }
+        // 2. MPEG-DASH XML manifest (application/dash+xml)
         if ((mimeType && mimeType.includes('dash+xml')) || decoded.startsWith('<')) {
           const baseMatch = decoded.match(/<BaseURL>([^<]+)<\/BaseURL>/);
           if (baseMatch && baseMatch[1]) {
@@ -1394,11 +1477,12 @@
               return { url: rawUrl, mimeType: 'audio/mp4', isDash: false, actualQuality: reportedQuality };
             }
           }
-          const blob = new Blob([decoded], { type: 'application/dash+xml' });
-          const mpdUrl = URL.createObjectURL(blob);
+          const mpdSegments = parseMpdSegments(decoded);
+          const dataUri = 'data:application/dash+xml;base64,' + btoa(unescape(encodeURIComponent(decoded)));
           return {
-            url: mpdUrl,
+            url: dataUri,
             mpdXml: decoded,
+            mpdSegments,
             mimeType: 'application/dash+xml',
             isDash: true,
             actualQuality: reportedQuality
@@ -1410,7 +1494,152 @@
       return null;
     }
 
-    async function startAudioPlayback(resolved) {
+    async function fetchArrayBuffer(segUrl) {
+      const r = await fetch(segUrl);
+      if (!r.ok) throw new Error(`Segment HTTP ${r.status}`);
+      return await r.arrayBuffer();
+    }
+
+    // Stream MPD segments using native MediaSource Extensions (MSE) so the first 4s segment starts playing immediately
+    async function playMpdViaNativeMse(mpdSegments, reqId) {
+      if (!window.MediaSource) throw new Error('MediaSource API unavailable');
+      const codecCandidates = [
+        `${mpdSegments.mimeType}; codecs="${mpdSegments.codecs}"`,
+        'audio/mp4; codecs="flac"',
+        'audio/mp4; codecs="fLaC"',
+        'audio/mp4; codecs="mp4a.40.2"'
+      ];
+      const supportedMime = codecCandidates.find(c => {
+        try { return MediaSource.isTypeSupported(c); } catch (_) { return false; }
+      });
+      if (!supportedMime) {
+        throw new Error('MSE codec not supported for direct SourceBuffer');
+      }
+
+      const ms = new MediaSource();
+      if (activeMediaSourceUrl) {
+        try { URL.revokeObjectURL(activeMediaSourceUrl); } catch (_) {}
+      }
+      activeMediaSourceUrl = URL.createObjectURL(ms);
+      audio.src = activeMediaSourceUrl;
+
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('MediaSource open timeout')), 4000);
+        ms.addEventListener('sourceopen', () => {
+          clearTimeout(timeout);
+          resolve();
+        }, { once: true });
+      });
+
+      if (reqId !== currentPlayReqId) return;
+
+      const sb = ms.addSourceBuffer(supportedMime);
+      const appendChunk = (buf) => new Promise((resolve, reject) => {
+        const onEnd = () => {
+          sb.removeEventListener('updateend', onEnd);
+          sb.removeEventListener('error', onErr);
+          resolve();
+        };
+        const onErr = () => {
+          sb.removeEventListener('updateend', onEnd);
+          sb.removeEventListener('error', onErr);
+          reject(new Error('SourceBuffer append error'));
+        };
+        sb.addEventListener('updateend', onEnd);
+        sb.addEventListener('error', onErr);
+        sb.appendBuffer(buf);
+      });
+
+      // Fetch initialization segment (0.mp4) + first media segment (1.mp4) in parallel for instant start
+      const firstSegUrl = mpdSegments.segmentUrls[0];
+      const [initBuf, firstSegBuf] = await Promise.all([
+        fetchArrayBuffer(mpdSegments.initUrl),
+        fetchArrayBuffer(firstSegUrl)
+      ]);
+      if (reqId !== currentPlayReqId) return;
+
+      await appendChunk(initBuf);
+      await appendChunk(firstSegBuf);
+
+      // Start playback right away as soon as segment #1 is buffered!
+      await audio.play();
+
+      // Pump remaining segments in the background
+      (async () => {
+        try {
+          for (let i = 1; i < mpdSegments.segmentUrls.length; i++) {
+            if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
+            const segBuf = await fetchArrayBuffer(mpdSegments.segmentUrls[i]);
+            if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
+            await appendChunk(segBuf);
+          }
+          if (reqId === currentPlayReqId && ms.readyState === 'open' && !sb.updating) {
+            try { ms.endOfStream(); } catch (_) {}
+          }
+        } catch (bgErr) {
+          console.warn('Background MSE segment pump stopped:', bgErr);
+        }
+      })();
+    }
+
+    // Fallback for browsers where native <audio> plays fMP4 Blobs directly without MSE SourceBuffer
+    async function playMpdViaBlobConcatenation(mpdSegments, reqId) {
+      const initBuf = await fetchArrayBuffer(mpdSegments.initUrl);
+      if (reqId !== currentPlayReqId) return;
+
+      // Fetch first 4 segments (~15 seconds) so playback begins quickly
+      const initialCount = Math.min(4, mpdSegments.segmentUrls.length);
+      const initialSegs = await Promise.all(
+        mpdSegments.segmentUrls.slice(0, initialCount).map(u => fetchArrayBuffer(u))
+      );
+      if (reqId !== currentPlayReqId) return;
+
+      const allBuffers = [initBuf, ...initialSegs];
+      const blobMime = mpdSegments.codecs === 'flac' ? 'audio/mp4' : (mpdSegments.mimeType || 'audio/mp4');
+      const initialBlob = new Blob(allBuffers, { type: blobMime });
+      if (activeMediaSourceUrl) {
+        try { URL.revokeObjectURL(activeMediaSourceUrl); } catch (_) {}
+      }
+      activeMediaSourceUrl = URL.createObjectURL(initialBlob);
+      audio.src = activeMediaSourceUrl;
+      audio.load();
+      await audio.play();
+
+      // Fetch remaining segments in parallel batches in background and seamlessly extend the audio blob
+      if (mpdSegments.segmentUrls.length > initialCount) {
+        (async () => {
+          try {
+            const remainingUrls = mpdSegments.segmentUrls.slice(initialCount);
+            const batchSize = 6;
+            for (let i = 0; i < remainingUrls.length; i += batchSize) {
+              if (reqId !== currentPlayReqId) return;
+              const batch = remainingUrls.slice(i, i + batchSize);
+              const bufs = await Promise.all(batch.map(u => fetchArrayBuffer(u)));
+              allBuffers.push(...bufs);
+            }
+            if (reqId !== currentPlayReqId) return;
+            const fullBlob = new Blob(allBuffers, { type: blobMime });
+            const newBlobUrl = URL.createObjectURL(fullBlob);
+            const resumeTime = audio.currentTime || 0;
+            const wasPaused = audio.paused;
+            const oldUrl = activeMediaSourceUrl;
+            activeMediaSourceUrl = newBlobUrl;
+            audio.src = newBlobUrl;
+            audio.currentTime = resumeTime;
+            if (!wasPaused) {
+              await audio.play().catch(() => {});
+            }
+            if (oldUrl) {
+              try { URL.revokeObjectURL(oldUrl); } catch (_) {}
+            }
+          } catch (e) {
+            console.warn('Background fMP4 assembly warning:', e);
+          }
+        })();
+      }
+    }
+
+    async function startAudioPlayback(resolved, reqId = currentPlayReqId) {
       if (dashPlayer) {
         try { dashPlayer.reset(); } catch (_) {}
         dashPlayer = null;
@@ -1418,67 +1647,87 @@
       audio.pause();
       audio.removeAttribute('crossorigin');
 
-      if (resolved.isDash && window.dashjs) {
-        await new Promise((resolve, reject) => {
-          let settled = false;
-          const timer = setTimeout(() => {
-            if (!settled) {
-              settled = true;
-              cleanup();
-              reject(new Error('DASH stream timed out'));
+      if (resolved.isDash) {
+        // 1. If we parsed <SegmentTemplate> from the MPD XML, stream via native MSE or fMP4 Blob concatenation
+        if (resolved.mpdSegments && resolved.mpdSegments.segmentUrls.length > 0) {
+          try {
+            await playMpdViaNativeMse(resolved.mpdSegments, reqId);
+            return;
+          } catch (mseErr) {
+            if (reqId !== currentPlayReqId) return;
+            try {
+              await playMpdViaBlobConcatenation(resolved.mpdSegments, reqId);
+              return;
+            } catch (blobErr) {
+              console.warn('fMP4 Blob fallback warning:', blobErr);
             }
-          }, 5000);
+          }
+        }
 
-          const cleanup = () => {
-            clearTimeout(timer);
-            audio.removeEventListener('playing', onPlaying);
-            audio.removeEventListener('canplay', onCanPlay);
-            audio.removeEventListener('error', onError);
-          };
-
-          const onPlaying = () => {
-            if (!settled) {
-              settled = true;
-              cleanup();
-              resolve();
-            }
-          };
-
-          const onCanPlay = () => {
-            audio.play().then(onPlaying).catch(err => {
+        // 2. Fallback to dash.js using data: URI (avoids blob:null origin failure in sandboxed iframes)
+        if (window.dashjs) {
+          await new Promise((resolve, reject) => {
+            let settled = false;
+            const timer = setTimeout(() => {
               if (!settled) {
                 settled = true;
                 cleanup();
-                reject(err);
+                reject(new Error('DASH stream timed out'));
+              }
+            }, 6000);
+
+            const cleanup = () => {
+              clearTimeout(timer);
+              audio.removeEventListener('playing', onPlaying);
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+            };
+
+            const onPlaying = () => {
+              if (!settled) {
+                settled = true;
+                cleanup();
+                resolve();
+              }
+            };
+
+            const onCanPlay = () => {
+              audio.play().then(onPlaying).catch(err => {
+                if (!settled) {
+                  settled = true;
+                  cleanup();
+                  reject(err);
+                }
+              });
+            };
+
+            const onError = () => {
+              if (!settled) {
+                settled = true;
+                cleanup();
+                reject(new Error('Audio element error on DASH stream'));
+              }
+            };
+
+            audio.addEventListener('playing', onPlaying, { once: true });
+            audio.addEventListener('canplay', onCanPlay, { once: true });
+            audio.addEventListener('error', onError, { once: true });
+
+            dashPlayer = window.dashjs.MediaPlayer().create();
+            dashPlayer.on(window.dashjs.MediaPlayer.events.ERROR, (e) => {
+              if (!settled) {
+                settled = true;
+                cleanup();
+                reject(new Error(e?.error?.message || 'DASH MediaPlayer error'));
               }
             });
-          };
-
-          const onError = () => {
-            if (!settled) {
-              settled = true;
-              cleanup();
-              reject(new Error('Audio element error on DASH stream'));
-            }
-          };
-
-          audio.addEventListener('playing', onPlaying, { once: true });
-          audio.addEventListener('canplay', onCanPlay, { once: true });
-          audio.addEventListener('error', onError, { once: true });
-
-          dashPlayer = window.dashjs.MediaPlayer().create();
-          dashPlayer.on(window.dashjs.MediaPlayer.events.ERROR, (e) => {
-            if (!settled) {
-              settled = true;
-              cleanup();
-              reject(new Error(e?.error?.message || 'DASH MediaPlayer error'));
-            }
+            dashPlayer.initialize(audio, resolved.url, true);
           });
-          dashPlayer.initialize(audio, resolved.url, true);
-        });
-        return;
+          return;
+        }
       }
 
+      // Direct single-file stream URL (application/vnd.tidal.bts)
       audio.src = resolved.url;
       audio.load();
       await audio.play();
@@ -1498,14 +1747,22 @@
       showToast(`Preparing download: "${track.title}"...`);
 
       try {
-        const { url, mimeType, qualityUsed } = await resolveStreamUrl(track.id, state.quality, { forceDirectBts: true });
-        const ext = (mimeType && mimeType.includes('flac')) ? 'flac' : 'm4a';
-        const fileName = `${safeTitle}.${ext}`;
+        const resolved = await resolveStreamUrl(track.id, state.quality);
+        const { url, mimeType, qualityUsed, isDash, mpdSegments } = resolved;
+        const ext = (mimeType && mimeType.includes('flac')) || (qualityUsed && qualityUsed.includes('LOSSLESS')) ? 'm4a' : 'm4a';
+        const fileExt = (!isDash && mimeType && mimeType.includes('flac')) ? 'flac' : ext;
+        const fileName = `${safeTitle}.${fileExt}`;
 
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('Direct stream anchor download');
-          const blob = await res.blob();
+        if (isDash && mpdSegments && mpdSegments.segmentUrls.length > 0) {
+          // Assemble full fMP4 audio file from DASH segments
+          const chunks = [await fetchArrayBuffer(mpdSegments.initUrl)];
+          const batchSize = 6;
+          for (let i = 0; i < mpdSegments.segmentUrls.length; i += batchSize) {
+            const batch = mpdSegments.segmentUrls.slice(i, i + batchSize);
+            const bufs = await Promise.all(batch.map(u => fetchArrayBuffer(u)));
+            chunks.push(...bufs);
+          }
+          const blob = new Blob(chunks, { type: 'audio/mp4' });
           const blobUrl = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = blobUrl;
@@ -1514,15 +1771,29 @@
           a.click();
           a.remove();
           setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-        } catch (_) {
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = fileName;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+        } else {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Direct stream anchor download');
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          } catch (_) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }
         }
 
         const dlEntry = {
@@ -1543,6 +1814,50 @@
           triggerBtn.innerHTML = origHtml;
         }
       }
+    }
+
+    async function runStreamPickupDiagnostics() {
+      const box = document.getElementById('apiDiagOutput');
+      const btn = document.getElementById('testStreamPickupBtn');
+      if (!box) return;
+      box.classList.remove('hidden');
+      box.innerHTML = '<div>Testing configured API endpoints for stream pickup...</div>';
+      if (btn) btn.disabled = true;
+
+      const endpoints = getOrderedApiBases();
+      const testTrack = state.queue[state.queueIndex] || state.searchResults[0] || state.history[0] || { id: 58990511, title: 'Airbag' };
+      const lines = [];
+
+      for (const base of endpoints) {
+        const shortHost = formatShortHost(base);
+        const t0 = performance.now();
+        try {
+          const searchUrl = cleanUrl(base) + `/track/?id=${encodeURIComponent(testTrack.id)}&quality=${encodeURIComponent(state.quality)}`;
+          const res = await fetch(searchUrl, { headers: { 'Accept': 'application/json' } });
+          const ms = Math.round(performance.now() - t0);
+          if (res.status === 202) {
+            lines.push(`<div class="text-amber-400">• ${escapeHtml(shortHost)}: HTTP 202 Queue Active (${ms}ms)</div>`);
+          } else if (res.ok) {
+            const json = await res.json();
+            const d = json.data || json;
+            const mType = d.manifestMimeType || (Array.isArray(json) ? 'Legacy Array' : 'Unknown');
+            const extracted = extractDirectUrlFromTrackResponse(json);
+            if (extracted) {
+              const segCount = extracted.mpdSegments ? `${extracted.mpdSegments.segmentUrls.length} fMP4 segments` : 'Direct BTS URL';
+              lines.push(`<div class="text-emerald-400">✓ ${escapeHtml(shortHost)}: Stream OK (${ms}ms) — ${escapeHtml(mType)} (${segCount})</div>`);
+            } else {
+              lines.push(`<div class="text-amber-400">• ${escapeHtml(shortHost)}: HTTP 200 but no manifest (${ms}ms)</div>`);
+            }
+          } else {
+            lines.push(`<div class="text-rose-400">✗ ${escapeHtml(shortHost)}: HTTP ${res.status} (${ms}ms)</div>`);
+          }
+        } catch (err) {
+          lines.push(`<div class="text-rose-400">✗ ${escapeHtml(shortHost)}: ${escapeHtml(err.message)}</div>`);
+        }
+      }
+
+      box.innerHTML = lines.join('');
+      if (btn) btn.disabled = false;
     }
 
     async function playTrackAtIndex(index) {
@@ -1569,9 +1884,6 @@
       renderQueue();
       refreshTrackRowHighlights();
 
-      // Immediately trigger listening-based recommendations from the played track
-      loadRecommendations(track, { fromPlayback: true });
-
       const streamChip = document.getElementById('streamStatusChip');
       streamChip.textContent = 'LOADING';
       const playPauseIcon = document.getElementById('playPauseIcon');
@@ -1586,15 +1898,15 @@
         audio.volume = state.muted ? 0 : state.volume;
 
         try {
-          await startAudioPlayback(resolved);
+          await startAudioPlayback(resolved, reqId);
         } catch (firstPlayErr) {
           if (reqId !== currentPlayReqId) return;
+          // Retry with HIGH quality (without discarding DASH manifests)
           resolved = await resolveStreamUrl(track.id, 'HIGH', {
-            excludeQuality: resolved.qualityUsed,
-            forceDirectBts: true
+            excludeQuality: resolved.qualityUsed
           });
           if (reqId !== currentPlayReqId) return;
-          await startAudioPlayback(resolved);
+          await startAudioPlayback(resolved, reqId);
         }
 
         if (reqId !== currentPlayReqId) return;
@@ -1602,6 +1914,9 @@
         streamChip.textContent = resolved.qualityUsed === 'HI_RES_LOSSLESS' ? 'HI-RES' : resolved.qualityUsed;
         updatePlayPauseButton();
         refreshTrackRowHighlights();
+
+        // Fetch listening-based recommendations and lyrics after stream playback starts so /track/ is never delayed
+        loadRecommendations(track, { fromPlayback: true });
         loadLyricsForTrack(track.id);
       } catch (err) {
         if (reqId !== currentPlayReqId) return;
@@ -3130,6 +3445,10 @@
       });
 
       document.getElementById('pingApiBtn').addEventListener('click', checkApiHealth);
+      const testStreamBtn = document.getElementById('testStreamPickupBtn');
+      if (testStreamBtn) {
+        testStreamBtn.addEventListener('click', runStreamPickupDiagnostics);
+      }
 
       // Keyboard shortcuts
       window.addEventListener('keydown', (e) => {
