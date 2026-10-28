@@ -1,0 +1,40 @@
+name: Build Linux AppImage
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-appimage:
+    name: Build Linux AppImage (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Linux AppImage FUSE dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2t64 || sudo apt-get install -y libfuse2 || true
+
+      - name: Install dependencies & build AppImage
+        run: |
+          npm install
+          npm run build:appimage
+
+      - name: Upload Linux AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hifi-tui-linux-AppImage
+          path: dist/*.AppImage
+          if-no-files-found: error
