@@ -1,20 +1,36 @@
-# HiFi Player
+# hifi-tui (`idk`) — Linux AppImage & Android APK Wrapper (`https://h.shy.cx`)
 
-A minimalist, themeable web music player and lossless track downloader built for the Tidal Hi-Fi API.
+A minimalist, terminal-styled (`TUI`) lossless music player strictly locked to `https://h.shy.cx` (zero 30-second external previews, zero third-party API fallbacks), complete with native **Linux AppImage** and **Android APK** wrappers that bypass Tidal CDN (`*.audio.tidal.com`) browser blocks at the OS network layer.
 
-## Features
+## How Both Wrappers Bypass CDN Blocks
 
-- **Direct Audio Download (`/track/`)**: Download tracks directly as `.flac` (`LOSSLESS` / `HI_RES_LOSSLESS`) or `.m4a` (`HIGH` / `LOW`) from any track row, the bottom player bar (`D` shortcut), or batch-download an entire playlist.
-- **Minimalist Design & 6 Built-in Themes**:
-  - **Monochrome OLED** (`#000000` pure black & crisp white accent)
-  - **Obsidian Cyan** (`#07080c` slate & sky accent)
-  - **Matcha Zen** (deep forest & emerald accent)
-  - **Amber Warm** (warm charcoal & analog amber)
-  - **Rose Velvet** (minimalist dark rose)
-  - **Paper Light** (clean daylight paper theme)
-  - Plus an **Ultra-Compact Track Rows** density toggle in Settings.
-- **Hi-Fi Audio Playback (`/track/`)**: Streams `LOSSLESS` (16-bit/44.1kHz FLAC), `HI_RES_LOSSLESS`, `HIGH` (320kbps AAC), and `LOW` (96kbps AAC) with Base64 manifest decoding (`application/vnd.tidal.bts`) and HTTP 202 playback queue polling (`/playback/requests/{id}`).
-- **Repeat & Shuffle Controls**: Toggle shuffle (`S`) and cycle repeat modes (`Off` → `Repeat All` → `Repeat One` via `R`).
-- **Search (`/search/`)**: Search tracks (`s=`), artists (`a=`), albums (`al=`), and Tidal editorial playlists (`p=`).
-- **Personal Library, Playlists, Liked Songs & Downloads Log**: Persisted in `localStorage` with JSON backup export/import.
-- **Smart Recommendations (`/recommendations/` & `/mix/`)**: Seeded from your active track, liked songs, or listening history.
+| Target | Wrapper Engine | How It Bypasses `*.audio.tidal.com` Blocks |
+| :--- | :--- | :--- |
+| **Linux `.AppImage`** | Electron (`electron-main.js`) | Uses Chromium `session.defaultSession.webRequest.onBeforeSendHeaders` to rewrite `Origin: https://listen.tidal.com` & `Referer: https://listen.tidal.com/`, and `onHeadersReceived` to inject `Access-Control-Allow-Origin: *`. Includes `--no-sandbox` for FUSE AppImage compatibility on Ubuntu/Arch/Fedora. |
+| **Android `.apk`** | Native Android `WebView` (`MainActivity.java`) | Uses `WebViewClient.shouldInterceptRequest()` + Java `HttpURLConnection` to intercept all `*.tidal.com` / `*.audio.tidal.com` segment requests on a background thread, spoof `Origin: https://listen.tidal.com`, and return a CORS-enabled `WebResourceResponse` stream. Includes a partial CPU `WakeLock` so lossless playback continues when the screen is off. |
+
+## Option 1: Zero-Setup Cloud Build (GitHub Actions)
+
+This repository includes `.github/workflows/build-appimage-and-apk.yml`.
+1. Push this repository to `https://github.com/apaloran/idk`.
+2. Open the **Actions** tab on GitHub -> **Build Linux AppImage & Android APK**.
+3. Download both compiled packages directly from the workflow **Artifacts** section:
+   - `hifi-tui-linux-AppImage` (`hifi-tui-1.0.0-x86_64.AppImage`)
+   - `hifi-tui-android-APK` (`hifi-tui-1.0.0-android.apk` — pre-signed and ready to install on your phone)
+
+## Option 2: Build Locally on Linux
+
+### Build Linux `.AppImage`
+```bash
+./build-linux-appimage.sh
+# or: npm install && npm run build:appimage
+```
+Output: `dist/hifi-tui-1.0.0-x86_64.AppImage`
+
+### Build Signed Android `.apk`
+Requires JDK 17+, `gradle`, and `ANDROID_HOME` (Android SDK Platform 34):
+```bash
+./build-android-apk.sh
+# or: npm run build:apk
+```
+Output: `dist/hifi-tui-1.0.0-android.apk`
