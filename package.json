@@ -1,0 +1,83 @@
+{
+  "name": "hifi-tui-player",
+  "version": "1.0.0",
+  "description": "Minimalist terminal-styled Tidal Hi-Fi lossless player locked to https://h.shy.cx (Linux AppImage & Android APK)",
+  "main": "electron-main.js",
+  "homepage": "https://github.com/apaloran/idk",
+  "scripts": {
+    "start": "electron --no-sandbox .",
+    "pack": "electron-builder --dir",
+    "build:appimage": "electron-builder --linux AppImage",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "sync:android": "cp index.html android/app/src/main/assets/index.html",
+    "build:apk": "bash build-android-apk.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apaloran/idk.git"
+  },
+  "keywords": [
+    "tidal",
+    "hifi",
+    "flac",
+    "lossless",
+    "terminal",
+    "tui",
+    "electron",
+    "appimage",
+    "android"
+  ],
+  "author": {
+    "name": "apaloran",
+    "email": "apaloran@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.apaloran.hifitui",
+    "productName": "HiFi-TUI-Player",
+    "files": [
+      "index.html",
+      "electron-main.js",
+      "package.json",
+      "build/icon.png"
+    ],
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "AudioVideo;Audio;Player;",
+      "synopsis": "Terminal Hi-Fi Lossless Music Player (h.shy.cx)",
+      "executableArgs": [
+        "--no-sandbox"
+      ]
+    },
+    "appImage": {
+      "artifactName": "hifi-tui-${version}-${arch}.AppImage"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "build/icon.png"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.music"
+    }
+  }
+}

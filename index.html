@@ -16,8 +16,8 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
+            mono: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
           },
           colors: {
             surface: {
@@ -37,102 +37,156 @@
     };
   </script>
   <style>
+    /* Minimalist Terminal / TUI Color Schemes */
     :root,
     [data-theme="oled"] {
-      --bg-950: #000000;
-      --bg-900: #080808;
-      --bg-800: #111111;
-      --bg-700: #1a1a1a;
-      --bg-600: #262626;
-      --text-main: #f5f5f5;
-      --text-muted: #888888;
-      --accent: #ffffff;
-      --accent-fg: #000000;
-      --border: rgba(255, 255, 255, 0.08);
+      /* Default: Phosphor CRT Green Terminal */
+      --bg-950: #030604;
+      --bg-900: #060b07;
+      --bg-800: #0b140d;
+      --bg-700: #122116;
+      --bg-600: #1b3321;
+      --text-main: #d8ffd8;
+      --text-muted: #578f63;
+      --accent: #33ff66;
+      --accent-fg: #020803;
+      --border: rgba(51, 255, 102, 0.22);
     }
     [data-theme="obsidian"] {
-      --bg-950: #07080c;
-      --bg-900: #0c0e14;
-      --bg-800: #131722;
-      --bg-700: #1c2230;
-      --bg-600: #283044;
-      --text-main: #f1f5f9;
-      --text-muted: #7e8ba3;
-      --accent: #38bdf8;
-      --accent-fg: #041019;
-      --border: rgba(255, 255, 255, 0.07);
-    }
-    [data-theme="emerald"] {
-      --bg-950: #040806;
-      --bg-900: #09100c;
-      --bg-800: #101c15;
-      --bg-700: #182a20;
-      --bg-600: #223b2d;
-      --text-main: #ecfdf5;
-      --text-muted: #6ee7b7;
-      --accent: #10b981;
-      --accent-fg: #022c22;
-      --border: rgba(16, 185, 129, 0.12);
+      /* Stark Monochrome TTY (Black & White) */
+      --bg-950: #040404;
+      --bg-900: #090909;
+      --bg-800: #111111;
+      --bg-700: #1b1b1b;
+      --bg-600: #282828;
+      --text-main: #efefef;
+      --text-muted: #787878;
+      --accent: #ffffff;
+      --accent-fg: #000000;
+      --border: rgba(255, 255, 255, 0.18);
     }
     [data-theme="amber"] {
-      --bg-950: #090806;
-      --bg-900: #110f0c;
-      --bg-800: #1c1813;
-      --bg-700: #29231c;
-      --bg-600: #383026;
-      --text-main: #fef3c7;
-      --text-muted: #a89f91;
-      --accent: #f59e0b;
-      --accent-fg: #1c1102;
-      --border: rgba(245, 158, 11, 0.12);
+      /* VT220 Amber Phosphor Terminal */
+      --bg-950: #070501;
+      --bg-900: #0e0a03;
+      --bg-800: #171106;
+      --bg-700: #241b0a;
+      --bg-600: #362810;
+      --text-main: #ffe9b8;
+      --text-muted: #9c7834;
+      --accent: #ffb000;
+      --accent-fg: #0a0600;
+      --border: rgba(255, 176, 0, 0.24);
+    }
+    [data-theme="emerald"] {
+      /* Cyan / VT100 Ice Terminal */
+      --bg-950: #02070a;
+      --bg-900: #050d13;
+      --bg-800: #0a1620;
+      --bg-700: #112332;
+      --bg-600: #1a354b;
+      --text-main: #d8f6ff;
+      --text-muted: #568ca3;
+      --accent: #00e5ff;
+      --accent-fg: #010a0d;
+      --border: rgba(0, 229, 255, 0.22);
     }
     [data-theme="rose"] {
-      --bg-950: #090507;
-      --bg-900: #12090d;
-      --bg-800: #1d1016;
-      --bg-700: #2b1821;
-      --bg-600: #3c222e;
-      --text-main: #ffe4e6;
-      --text-muted: #cda0ab;
-      --accent: #fb7185;
-      --accent-fg: #1f040a;
-      --border: rgba(251, 113, 133, 0.12);
+      /* Red Alert / Crimson TTY */
+      --bg-950: #080305;
+      --bg-900: #100609;
+      --bg-800: #190b10;
+      --bg-700: #271119;
+      --bg-600: #381924;
+      --text-main: #ffe4e8;
+      --text-muted: #9e606d;
+      --accent: #ff4d6d;
+      --accent-fg: #0d0204;
+      --border: rgba(255, 77, 109, 0.24);
     }
     [data-theme="light"] {
-      --bg-950: #fafafa;
-      --bg-900: #f3f4f6;
-      --bg-800: #e5e7eb;
-      --bg-700: #d1d5db;
-      --bg-600: #9ca3af;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --accent: #111827;
-      --accent-fg: #ffffff;
-      --border: rgba(15, 23, 42, 0.09);
+      /* Paper TTY (High-Contrast E-Ink) */
+      --bg-950: #f2f2ed;
+      --bg-900: #e8e8e1;
+      --bg-800: #dcdcd3;
+      --bg-700: #c8c8be;
+      --bg-600: #a6a69c;
+      --text-main: #111111;
+      --text-muted: #555550;
+      --accent: #111111;
+      --accent-fg: #f2f2ed;
+      --border: rgba(17, 17, 17, 0.22);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      border-radius: 0px !important;
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    /* Keep FontAwesome icons using their icon font */
+    .fa-solid, .fa-regular, .fa-brands, .fas, .far, .fab {
+      font-family: "Font Awesome 6 Free" !important;
+    }
+
     body {
-      font-family: 'Inter', sans-serif;
       background-color: var(--bg-950);
       color: var(--text-main);
       overflow-x: hidden;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      letter-spacing: -0.01em;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      position: relative;
     }
+
+    /* Subtle CRT Terminal Scanline Overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.14) 3px
+      );
+      opacity: 0.45;
+    }
+    [data-theme="light"] body::after {
+      opacity: 0.08;
+    }
+
     .theme-border { border-color: var(--border) !important; }
     .theme-text-main { color: var(--text-main); }
     .theme-text-muted { color: var(--text-muted); }
-    .theme-accent-bg { background-color: var(--accent); color: var(--accent-fg); }
+    .theme-accent-bg {
+      background-color: var(--accent);
+      color: var(--accent-fg);
+      font-weight: 600;
+    }
     .theme-accent-text { color: var(--accent); }
     .theme-pill-active {
       background-color: var(--bg-800);
-      color: var(--text-main);
+      color: var(--accent);
       border-color: var(--accent) !important;
     }
 
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--bg-600); border-radius: 9999px; }
+    /* Terminal nav & row highlights */
+    .nav-btn {
+      position: relative;
+      text-transform: lowercase;
+    }
+    .track-row {
+      border-bottom: 1px dashed var(--border);
+    }
+    .track-row:hover {
+      background-color: var(--bg-900) !important;
+      border-color: var(--accent) !important;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-950); border-left: 1px solid var(--border); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); }
 
     input[type="range"] {
       -webkit-appearance: none;
@@ -141,26 +195,21 @@
       cursor: pointer;
     }
     input[type="range"]::-webkit-slider-runnable-track {
-      height: 3px;
-      border-radius: 999px;
+      height: 4px;
       background: var(--bg-700);
+      border: 1px solid var(--border);
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
+      width: 8px;
+      height: 12px;
       background: var(--accent);
-      margin-top: -3.5px;
-      transition: transform 0.12s ease;
-    }
-    input[type="range"]:hover::-webkit-slider-thumb {
-      transform: scale(1.25);
+      margin-top: -5px;
     }
 
     @keyframes pulseBars {
-      0%, 100% { transform: scaleY(0.3); }
+      0%, 100% { transform: scaleY(0.25); }
       50% { transform: scaleY(1); }
     }
     .eq-bar {
@@ -169,17 +218,30 @@
       height: 11px;
       background: var(--accent);
       margin: 0 1px;
-      border-radius: 1px;
-      animation: pulseBars 0.75s infinite ease-in-out;
+      animation: pulseBars 0.65s infinite steps(3);
       transform-origin: bottom;
     }
     .eq-bar:nth-child(2) { animation-delay: 0.2s; }
     .eq-bar:nth-child(3) { animation-delay: 0.4s; }
 
+    @keyframes blinkCursor {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    .term-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 13px;
+      background: var(--accent);
+      vertical-align: middle;
+      margin-left: 3px;
+      animation: blinkCursor 1s infinite;
+    }
+
     /* Minimalist density mode */
     body.compact-rows .track-row {
-      padding-top: 0.4rem;
-      padding-bottom: 0.4rem;
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
     }
   </style>
 </head>
@@ -191,7 +253,7 @@
       <div class="w-6 h-6 rounded-md theme-accent-bg flex items-center justify-center">
         <i class="fa-solid fa-wave-square text-[11px]"></i>
       </div>
-      <span class="font-semibold tracking-tight text-sm theme-text-main">HiFi Player</span>
+      <span class="font-semibold tracking-tight text-xs theme-text-main">hifi-tui://</span>
       <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-800 theme-text-muted border theme-border">h.shy.cx</span>
     </div>
     <div class="flex items-center gap-1.5">
@@ -224,7 +286,7 @@
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h1 class="font-semibold text-sm tracking-tight theme-text-main">HiFi Player</h1>
+              <h1 class="font-semibold text-xs tracking-tight theme-accent-text">hifi-tui // cli</h1>
               <span id="qualityBadgeTop" class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-surface-800 theme-text-muted border theme-border">LOSSLESS</span>
             </div>
             <p class="text-[10px] theme-text-muted font-mono truncate max-w-[125px]" id="sidebarApiHost">h.shy.cx</p>
@@ -237,7 +299,7 @@
 
       <!-- Primary Nav -->
       <nav class="space-y-0.5">
-        <p class="px-2.5 text-[10px] font-mono uppercase tracking-widest theme-text-muted mb-1">Browse</p>
+        <p class="px-2 text-[10px] font-mono uppercase tracking-widest theme-text-muted mb-1">┌─ /dirs/browse</p>
         <button data-nav="home" class="nav-btn w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition bg-surface-800 theme-text-main border theme-border">
           <i class="fa-solid fa-magnifying-glass w-4 text-center text-[11px]"></i>
           <span>Home & Search</span>
@@ -250,7 +312,7 @@
 
       <!-- Library Nav -->
       <nav class="space-y-0.5">
-        <p class="px-2.5 text-[10px] font-mono uppercase tracking-widest theme-text-muted mb-1">Collection</p>
+        <p class="px-2 text-[10px] font-mono uppercase tracking-widest theme-text-muted mb-1">├─ /dirs/library</p>
         <button data-nav="library" class="nav-btn w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium theme-text-muted hover:bg-surface-800/60 transition">
           <div class="flex items-center gap-2.5">
             <i class="fa-solid fa-layer-group w-4 text-center text-[11px]"></i>
@@ -329,7 +391,7 @@
             <input
               id="searchInput"
               type="text"
-              placeholder="Search tracks, artists, albums, playlists..."
+              placeholder="hifi@h.shy.cx:~$ query --tracks --lossless ..."
               class="w-full pl-8 pr-20 py-1.5 rounded-lg bg-surface-900 border theme-border text-xs theme-text-main placeholder-neutral-500 focus:outline-none focus:border-neutral-400 transition"
             />
             <button id="clearSearchBtn" class="hidden absolute right-14 top-1/2 -translate-y-1/2 theme-text-muted hover:theme-text-main px-1">
@@ -351,12 +413,12 @@
         <!-- Right Controls: Theme Select, Quality, Lyrics, Queue -->
         <div class="hidden md:flex items-center gap-2">
           <select id="themeSelect" class="px-2.5 py-1.5 rounded-lg bg-surface-900 border theme-border text-[11px] font-mono theme-text-main focus:outline-none" title="Change Theme Look">
-            <option value="oled">Theme: Monochrome OLED</option>
-            <option value="obsidian">Theme: Obsidian Cyan</option>
-            <option value="emerald">Theme: Matcha Zen</option>
-            <option value="amber">Theme: Amber Warm</option>
-            <option value="rose">Theme: Rose Velvet</option>
-            <option value="light">Theme: Paper Light</option>
+            <option value="oled">tty: phosphor-green</option>
+            <option value="obsidian">tty: mono-white</option>
+            <option value="emerald">tty: vt100-cyan</option>
+            <option value="amber">tty: vt220-amber</option>
+            <option value="rose">tty: crimson-tty</option>
+            <option value="light">tty: paper-ink</option>
           </select>
           <select id="qualitySelect" class="px-2.5 py-1.5 rounded-lg bg-surface-900 border theme-border text-[11px] font-mono theme-text-main focus:outline-none" title="Streaming & Download Quality">
             <option value="LOSSLESS">LOSSLESS (FLAC)</option>
@@ -385,9 +447,11 @@
           <div class="rounded-xl bg-surface-900 border theme-border px-4 py-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
             <div class="space-y-1">
               <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono theme-text-muted">
-                <span>PRIMARY: <strong id="heroApiLabel" class="theme-text-main">https://h.shy.cx</strong></span>
-                <span>•</span>
-                <span>FALLBACK: <strong id="heroFallbackLabel" class="theme-text-main">astrasphe.re</strong></span>
+                <span class="theme-accent-text">$</span>
+                <span>ENDPOINT_LOCK: <strong id="heroApiLabel" class="theme-text-main">https://h.shy.cx</strong></span>
+                <span>::</span>
+                <span>FALLBACKS: <strong id="heroFallbackLabel" class="theme-accent-text">DISABLED (h.shy.cx ONLY)</strong></span>
+                <span class="term-cursor"></span>
               </div>
               <div class="hidden flex-wrap items-center gap-1.5">
                 <button data-quick-search="Daft Punk" class="quick-chip px-2.5 py-1 rounded-md bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-main transition">Daft Punk</button>
@@ -433,14 +497,21 @@
 
           <!-- Clean Home Listening-Based Recommendations Feed -->
           <div id="homeFeedSection" class="space-y-4">
-            <div id="homeEmptyState" class="rounded-xl bg-surface-900/60 border theme-border px-6 py-12 text-center space-y-2.5">
-              <div class="w-10 h-10 rounded-full bg-surface-800 border theme-border mx-auto flex items-center justify-center theme-text-muted">
-                <i class="fa-solid fa-wave-square text-sm"></i>
+            <div id="homeEmptyState" class="bg-surface-900/90 border theme-border p-5 space-y-3 font-mono text-left">
+              <div class="flex items-center justify-between border-b theme-border pb-2 text-[11px] theme-text-muted">
+                <span>┌─[ tty1 // hifi-player@h.shy.cx ]</span>
+                <span class="theme-accent-text">[STREAM_MODE: FULL_TRACK_ONLY // NO_PREVIEWS]</span>
               </div>
-              <h3 class="text-sm font-semibold theme-text-main">Start Listening</h3>
-              <p class="text-xs theme-text-muted max-w-md mx-auto leading-relaxed">
-                Search for any song, artist, or album above and press play. As you listen, personalized recommendations based on your playback will automatically appear here.
-              </p>
+              <div class="space-y-1 text-xs">
+                <p class="theme-text-main"><span class="theme-accent-text">guest@h.shy.cx:~$</span> status --endpoint</p>
+                <p class="theme-text-muted pl-4">&gt; upstream locked to <span class="theme-text-main">https://h.shy.cx</span> (all external fallbacks &amp; 30s previews removed)</p>
+                <p class="theme-text-main pt-1"><span class="theme-accent-text">guest@h.shy.cx:~$</span> help --usage</p>
+                <p class="theme-text-muted pl-4">&gt; enter a track, artist, or album in the command bar above (press <kbd class="px-1 border theme-border theme-text-main">/</kbd>) and select a row to stream.</p>
+                <p class="theme-text-muted pl-4">&gt; as tracks play, listening-based recommendations from <span class="theme-text-main">h.shy.cx/recommendations/</span> populate below.</p>
+              </div>
+              <div id="terminalLogBox" class="bg-surface-950 border theme-border p-2.5 text-[11px] theme-text-muted space-y-0.5 max-h-36 overflow-y-auto">
+                <div>[boot] hifi-tui initialized :: endpoint=https://h.shy.cx :: fallbacks=none</div>
+              </div>
             </div>
 
             <div id="homeListeningRecsSection" class="hidden space-y-2.5">
@@ -845,7 +916,7 @@
     <div class="bg-surface-900 border theme-border rounded-xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-sm font-semibold theme-text-main">Appearance & Tidal API Settings</h3>
+          <h3 class="text-sm font-semibold theme-text-main">[config] Terminal Theme &amp; h.shy.cx Stream Diagnostics</h3>
           <p class="text-xs theme-text-muted">Customize your theme look, layout density, and API instance</p>
         </div>
         <button id="closeSettingsModalBtn" class="theme-text-muted hover:theme-text-main"><i class="fa-solid fa-xmark"></i></button>
@@ -858,27 +929,27 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <button data-theme-pick="oled" class="theme-card px-3 py-2 rounded-lg bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
               <span class="w-3 h-3 rounded-full bg-black border border-white/50 shrink-0"></span>
-              <span class="truncate">Monochrome OLED</span>
+              <span class="truncate">phosphor-green</span>
             </button>
             <button data-theme-pick="obsidian" class="theme-card px-3 py-2 rounded-lg bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
               <span class="w-3 h-3 rounded-full bg-sky-400 shrink-0"></span>
-              <span class="truncate">Obsidian Cyan</span>
+              <span class="truncate">mono-white</span>
             </button>
             <button data-theme-pick="emerald" class="theme-card px-3 py-2 rounded-lg bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
               <span class="w-3 h-3 rounded-full bg-emerald-400 shrink-0"></span>
-              <span class="truncate">Matcha Zen</span>
+              <span class="truncate">vt100-cyan</span>
             </button>
             <button data-theme-pick="amber" class="theme-card px-3 py-2 rounded-lg bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
               <span class="w-3 h-3 rounded-full bg-amber-400 shrink-0"></span>
-              <span class="truncate">Amber Warm</span>
+              <span class="truncate">vt220-amber</span>
             </button>
             <button data-theme-pick="rose" class="theme-card px-3 py-2 rounded-lg bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
               <span class="w-3 h-3 rounded-full bg-rose-400 shrink-0"></span>
-              <span class="truncate">Rose Velvet</span>
+              <span class="truncate">crimson-tty</span>
             </button>
             <button data-theme-pick="light" class="theme-card px-3 py-2 rounded-lg bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
               <span class="w-3 h-3 rounded-full bg-white border border-slate-400 shrink-0"></span>
-              <span class="truncate">Paper Light</span>
+              <span class="truncate">paper-ink</span>
             </button>
           </div>
         </div>
@@ -893,12 +964,12 @@
         </div>
 
         <!-- Primary API Base URL (Manual Entry or Quick Preset) -->
-        <div>
+        <div class="hidden">
           <label class="text-xs font-medium theme-text-muted block mb-1">Primary Tidal API Base URL (Manual or Preset)</label>
           <input id="apiBaseInput" type="url" value="https://h.shy.cx" placeholder="Enter any Tidal Hi-Fi API URL (e.g. https://h.shy.cx)" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none focus:border-neutral-400" />
         </div>
 
-        <div>
+        <div class="hidden">
           <p class="text-[11px] theme-text-muted mb-1">Quick Manual API Presets (Click to select)</p>
           <div class="flex flex-wrap gap-1.5">
             <button data-api-preset="https://h.shy.cx" class="api-preset-btn px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] font-mono theme-text-main">https://h.shy.cx</button>
@@ -910,12 +981,12 @@
         </div>
 
         <!-- Fallback API Configuration -->
-        <div>
+        <div class="hidden">
           <label class="text-xs font-medium theme-text-muted block mb-1">Fallback API Base URL</label>
           <input id="fallbackApiInput" type="url" value="https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re" placeholder="https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none focus:border-neutral-400" />
         </div>
 
-        <div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-800 border theme-border">
+        <div class="hidden items-center justify-between p-2.5 rounded-lg bg-surface-800 border theme-border">
           <div>
             <p class="text-xs font-medium theme-text-main">Enable Automatic Fallback</p>
             <p class="text-[11px] theme-text-muted">Use fallback API (astrasphe.re) if the primary API fails</p>
@@ -923,12 +994,18 @@
           <input id="failoverCheckbox" type="checkbox" checked class="w-4 h-4 rounded" />
         </div>
 
+        <!-- Optional Custom Segment CORS Proxy URL -->
+        <div>
+          <label class="text-xs font-medium theme-text-muted block mb-1">Optional Custom Segment CORS Proxy Prefix</label>
+          <input id="segmentProxyInput" type="url" value="" placeholder="Auto (api.cors.lol / cors.eu.org / direct <audio> fallback)" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none focus:border-neutral-400" />
+        </div>
+
         <!-- Live API & Stream Pickup Diagnostic -->
         <div class="p-3 rounded-lg bg-surface-800/80 border theme-border space-y-2">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-xs font-medium theme-text-main">API Stream Pickup Diagnostics</p>
-              <p class="text-[11px] theme-text-muted">Verify live /search/ and /track/ stream resolution on Primary & Fallback APIs</p>
+              <p class="text-[11px] theme-text-muted">Verify live /trackManifests/ (v2) and /track/ stream resolution on Primary & Fallback APIs</p>
             </div>
             <button id="testStreamPickupBtn" type="button" class="px-2.5 py-1 rounded-md bg-surface-700 hover:bg-surface-600 border theme-border text-[11px] font-mono theme-text-main transition">
               Check Streams
@@ -952,20 +1029,21 @@
     // =========================================================================
     // STATE & STORAGE MANAGEMENT
     // =========================================================================
-    const STORAGE_KEY = 'idk_tidal_player_v2';
+    const STORAGE_KEY = 'idk_tidal_player_v3_terminal_hshy';
     const API_BASE = 'https://h.shy.cx';
-    const FALLBACK_API_BASE = 'https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re';
-    const THEME_LIST = ['oled', 'obsidian', 'emerald', 'amber', 'rose', 'light'];
+    const FALLBACK_API_BASE = 'https://h.shy.cx';
+    const THEME_LIST = ['oled', 'obsidian', 'amber', 'emerald', 'rose', 'light'];
 
     const DEFAULT_SEED_TRACKS = [];
 
     const state = {
       apiBase: API_BASE,
-      fallbackApiBase: FALLBACK_API_BASE,
-      enableFailover: true,
+      fallbackApiBase: API_BASE,
+      enableFailover: false,
+      segmentProxyUrl: '',
       quality: 'LOSSLESS',
       theme: 'oled',
-      compactRows: false,
+      compactRows: true,
       currentView: 'home',
       // Playback state
       queue: [],
@@ -1001,18 +1079,31 @@
       lyricsLines: []
     };
 
+    function termLog(msg, level = 'info') {
+      const ts = new Date().toISOString().slice(11, 19);
+      const box = document.getElementById('terminalLogBox');
+      if (box) {
+        const line = document.createElement('div');
+        line.className = level === 'error'
+          ? 'text-rose-400'
+          : level === 'ok'
+          ? 'theme-accent-text'
+          : 'theme-text-muted';
+        line.textContent = `[${ts}] ${msg}`;
+        box.appendChild(line);
+        while (box.children.length > 40) {
+          box.removeChild(box.firstChild);
+        }
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+
     function cleanUrl(u) {
       return String(u || '').trim().replace(/\/+$/, '');
     }
 
-    function formatShortHost(urlStr) {
-      try {
-        const u = new URL(urlStr);
-        if (u.hostname.endsWith('astrasphe.re')) return 'astrasphe.re';
-        return u.hostname;
-      } catch (_) {
-        return String(urlStr || '').replace(/^https?:\/\//, '').split('/')[0] || 'h.shy.cx';
-      }
+    function formatShortHost() {
+      return 'h.shy.cx';
     }
 
     function loadState() {
@@ -1020,9 +1111,11 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const saved = JSON.parse(raw);
-        if (saved.apiBase) state.apiBase = cleanUrl(saved.apiBase);
-        if (saved.fallbackApiBase) state.fallbackApiBase = cleanUrl(saved.fallbackApiBase);
-        if (typeof saved.enableFailover === 'boolean') state.enableFailover = saved.enableFailover;
+        // Strictly lock API to https://h.shy.cx
+        state.apiBase = API_BASE;
+        state.fallbackApiBase = API_BASE;
+        state.enableFailover = false;
+        if (typeof saved.segmentProxyUrl === 'string') state.segmentProxyUrl = saved.segmentProxyUrl.trim();
         if (saved.quality) state.quality = saved.quality;
         if (saved.theme && THEME_LIST.includes(saved.theme)) state.theme = saved.theme;
         if (typeof saved.compactRows === 'boolean') state.compactRows = saved.compactRows;
@@ -1044,9 +1137,10 @@
     function saveState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          apiBase: state.apiBase,
-          fallbackApiBase: state.fallbackApiBase,
-          enableFailover: state.enableFailover,
+          apiBase: API_BASE,
+          fallbackApiBase: API_BASE,
+          enableFailover: false,
+          segmentProxyUrl: state.segmentProxyUrl,
           quality: state.quality,
           theme: state.theme,
           compactRows: state.compactRows,
@@ -1068,7 +1162,7 @@
     }
 
     // =========================================================================
-    // THEME ENGINE
+    // THEME ENGINE (TERMINAL PALETTES)
     // =========================================================================
     function applyTheme(themeName) {
       if (!THEME_LIST.includes(themeName)) themeName = 'oled';
@@ -1078,8 +1172,8 @@
       if (sel) sel.value = themeName;
       document.querySelectorAll('[data-theme-pick]').forEach(btn => {
         const active = btn.getAttribute('data-theme-pick') === themeName;
-        btn.classList.toggle('ring-2', active);
-        btn.classList.toggle('ring-offset-1', active);
+        btn.classList.toggle('ring-1', active);
+        btn.classList.toggle('theme-accent-text', active);
       });
       document.body.classList.toggle('compact-rows', Boolean(state.compactRows));
       saveState();
@@ -1091,18 +1185,18 @@
     function showToast(msg, type = 'info') {
       const container = document.getElementById('toastContainer');
       const el = document.createElement('div');
-      el.className = 'px-3.5 py-2 rounded-lg bg-surface-800 border theme-border shadow-xl text-xs font-medium theme-text-main flex items-center gap-2 transition-all duration-300';
-      const iconClass = type === 'error'
-        ? 'fa-circle-exclamation text-rose-400'
+      el.className = 'px-3 py-2 bg-surface-900 border theme-border shadow-xl text-xs font-mono theme-text-main flex items-center gap-2 transition-all duration-200';
+      const prefix = type === 'error'
+        ? '<span class="text-rose-400 font-bold">[ERR]</span>'
         : type === 'success'
-        ? 'fa-circle-check text-emerald-400'
-        : 'fa-circle-info theme-text-muted';
-      el.innerHTML = `<i class="fa-solid ${iconClass}"></i><span>${escapeHtml(msg)}</span>`;
+        ? '<span class="theme-accent-text font-bold">[OK]</span>'
+        : '<span class="theme-text-muted">[INFO]</span>';
+      el.innerHTML = `${prefix}<span>${escapeHtml(msg)}</span>`;
       container.appendChild(el);
       setTimeout(() => {
         el.style.opacity = '0';
-        setTimeout(() => el.remove(), 260);
-      }, 2600);
+        setTimeout(() => el.remove(), 220);
+      }, 2800);
     }
 
     function escapeHtml(str) {
@@ -1136,6 +1230,7 @@
       const albumObj = t.album || { id: 0, title: 'Single', cover: t.cover || '' };
       return {
         id: Number(t.id || t.trackId),
+        isrc: t.isrc || '',
         title: t.title || 'Untitled Track',
         version: t.version || null,
         duration: Number(t.duration || 0),
@@ -1159,118 +1254,157 @@
     }
 
     // =========================================================================
-    // TIDAL HI-FI API CLIENT (PRIMARY + astrasphe.re FALLBACK + MANUAL APIS)
+    // STRICT https://h.shy.cx CLIENT & SINGLE-FLIGHT QUEUE POLLER
     // =========================================================================
+    let activeQueueCancelUrl = null;
+
     function getOrderedApiBases() {
-      const primary = cleanUrl(state.apiBase || API_BASE);
-      const fallback = cleanUrl(state.fallbackApiBase || FALLBACK_API_BASE);
-      const list = [primary];
-      if (state.enableFailover) {
-        if (fallback && !list.includes(fallback)) list.push(fallback);
-        if (API_BASE && !list.includes(API_BASE)) list.push(API_BASE);
+      // Strictly locked to https://h.shy.cx — all fallbacks removed per user request
+      return [API_BASE];
+    }
+
+    function isPendingQueuePayload(data) {
+      if (!data || typeof data !== 'object') return false;
+      const st = String(data.status || '').toLowerCase();
+      if (st === 'pending' || st === 'queued' || st === 'processing' || st === 'running' || st === 'waiting') {
+        return true;
       }
-      return list;
+      if ((data.statusUrl || data.requestId) && !data.manifest && !data.data && !data.OriginalTrackUrl && !data.attributes) {
+        return true;
+      }
+      return false;
+    }
+
+    async function cancelPreviousQueueRequestIfNeeded() {
+      if (!activeQueueCancelUrl) return;
+      const urlToCancel = activeQueueCancelUrl;
+      activeQueueCancelUrl = null;
+      try {
+        await fetch(urlToCancel, { method: 'DELETE' });
+        termLog(`cancelled superseded queue slot: ${urlToCancel.split('/').pop()}`);
+      } catch (_) {}
+    }
+
+    async function pollPlaybackRequest(baseUrl, pendingObj, reqId = null) {
+      const statusPath = pendingObj.statusUrl || `/playback/requests/${pendingObj.requestId}`;
+      const cancelPath = pendingObj.cancelUrl || statusPath;
+      const pollUrl = API_BASE + (statusPath.startsWith('/') ? '' : '/') + statusPath;
+      activeQueueCancelUrl = API_BASE + (cancelPath.startsWith('/') ? '' : '/') + cancelPath;
+
+      const streamChip = document.getElementById('streamStatusChip');
+      for (let attempt = 0; attempt < 25; attempt++) {
+        if (reqId !== null && reqId !== currentPlayReqId) {
+          await cancelPreviousQueueRequestIfNeeded();
+          throw new Error('Playback request superseded');
+        }
+        const pos = pendingObj.queuePosition || 1;
+        if (streamChip) streamChip.textContent = `QUEUE #${pos}`;
+        termLog(`h.shy.cx playback queue #${pos} (poll ${attempt + 1}/25)...`);
+        await new Promise(r => setTimeout(r, 1000));
+        if (reqId !== null && reqId !== currentPlayReqId) {
+          await cancelPreviousQueueRequestIfNeeded();
+          throw new Error('Playback request superseded');
+        }
+
+        const res = await fetch(pollUrl, { headers: { 'Accept': 'application/json' } });
+        if (res.status === 200 || res.status === 202) {
+          const data = await res.json();
+          if (data && (data.status === 'failed' || data.status === 'error' || data.error)) {
+            activeQueueCancelUrl = null;
+            throw new Error(data.error || data.detail || 'h.shy.cx queue request failed');
+          }
+          if (!isPendingQueuePayload(data)) {
+            activeQueueCancelUrl = null;
+            return data;
+          }
+          if (data && data.queuePosition) {
+            pendingObj.queuePosition = data.queuePosition;
+          }
+        } else if (res.status >= 400 && res.status !== 404) {
+          activeQueueCancelUrl = null;
+          throw new Error(`HTTP ${res.status} polling h.shy.cx queue`);
+        }
+      }
+      activeQueueCancelUrl = null;
+      throw new Error('h.shy.cx playback queue timed out');
     }
 
     async function apiFetch(pathAndQuery, options = {}) {
-      const bases = getOrderedApiBases();
-      let lastErr = null;
+      const reqUrl = API_BASE + (pathAndQuery.startsWith('/') ? '' : '/') + pathAndQuery;
+      const t0 = performance.now();
+      try {
+        const response = await fetch(reqUrl, {
+          method: options.method || 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
 
-      for (const base of bases) {
-        const cleanBase = cleanUrl(base);
-        const reqUrl = cleanBase + (pathAndQuery.startsWith('/') ? '' : '/') + pathAndQuery;
-        try {
-          const response = await fetch(reqUrl, {
-            method: options.method || 'GET',
-            headers: { 'Accept': 'application/json' }
-          });
-
-          if (response.status === 202) {
-            const pendingData = await response.json();
-            const resolved = await pollPlaybackRequest(cleanBase, pendingData);
-            updateApiStatusIndicator(true, cleanBase);
-            return resolved;
-          }
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status} from ${formatShortHost(cleanBase)}`);
-          }
-
-          const json = await response.json();
-          if (json && json.status === 'pending' && (json.statusUrl || json.requestId)) {
-            const resolved = await pollPlaybackRequest(cleanBase, json);
-            updateApiStatusIndicator(true, cleanBase);
-            return resolved;
-          }
-
-          updateApiStatusIndicator(true, cleanBase);
-          return json;
-        } catch (err) {
-          lastErr = err;
+        if (response.status === 202) {
+          const pendingData = await response.json();
+          const resolved = await pollPlaybackRequest(API_BASE, pendingData, options.reqId ?? null);
+          updateApiStatusIndicator(true, API_BASE);
+          return resolved;
         }
-      }
 
-      updateApiStatusIndicator(false, state.apiBase);
-      throw lastErr || new Error('API request failed');
-    }
-
-    async function pollPlaybackRequest(baseUrl, pendingObj) {
-      const statusPath = pendingObj.statusUrl || `/playback/requests/${pendingObj.requestId}`;
-      const streamChip = document.getElementById('streamStatusChip');
-      for (let attempt = 0; attempt < 15; attempt++) {
-        if (streamChip) streamChip.textContent = `QUEUE #${pendingObj.queuePosition || 1}`;
-        await new Promise(r => setTimeout(r, 1200));
-        const pollUrl = baseUrl + (statusPath.startsWith('/') ? '' : '/') + statusPath;
-        const res = await fetch(pollUrl, { headers: { 'Accept': 'application/json' } });
-        if (res.status === 200) {
-          const data = await res.json();
-          if (!data || data.status !== 'pending') return data;
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} from h.shy.cx`);
         }
+
+        const json = await response.json();
+        if (isPendingQueuePayload(json)) {
+          const resolved = await pollPlaybackRequest(API_BASE, json, options.reqId ?? null);
+          updateApiStatusIndicator(true, API_BASE);
+          return resolved;
+        }
+
+        const ms = Math.round(performance.now() - t0);
+        termLog(`GET ${pathAndQuery.split('&')[0]} -> 200 OK (${ms}ms)`, 'ok');
+        updateApiStatusIndicator(true, API_BASE);
+        return json;
+      } catch (err) {
+        termLog(`ERR ${pathAndQuery.split('&')[0]} -> ${err.message}`, 'error');
+        updateApiStatusIndicator(false, API_BASE);
+        throw err;
       }
-      throw new Error('Playback queue timed out');
     }
 
     async function checkApiHealth() {
       const dot = document.getElementById('apiStatusDot');
       const txt = document.getElementById('apiStatusText');
-      dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 animate-pulse';
-      txt.textContent = 'Checking...';
+      dot.className = 'w-1.5 h-1.5 bg-amber-400 shrink-0 animate-pulse';
+      txt.textContent = 'pinging h.shy.cx...';
       updateEndpointLabels();
       try {
         const data = await apiFetch('/');
-        const ver = data && data.version ? `v${data.version}` : 'Online';
-        updateApiStatusIndicator(true, state.apiBase, ver);
+        const ver = data && data.version ? `v${data.version}` : 'ONLINE';
+        updateApiStatusIndicator(true, API_BASE, ver);
       } catch (e) {
-        updateApiStatusIndicator(false, state.apiBase);
+        updateApiStatusIndicator(false, API_BASE);
       }
     }
 
     function updateEndpointLabels() {
-      const primaryShort = formatShortHost(state.apiBase);
-      const fallbackShort = state.enableFailover ? formatShortHost(state.fallbackApiBase || FALLBACK_API_BASE) : 'Disabled';
-      document.getElementById('sidebarApiHost').textContent = primaryShort;
+      document.getElementById('sidebarApiHost').textContent = 'h.shy.cx (locked)';
       const heroLbl = document.getElementById('heroApiLabel');
-      if (heroLbl) heroLbl.textContent = state.apiBase;
+      if (heroLbl) heroLbl.textContent = API_BASE;
       const fbLbl = document.getElementById('heroFallbackLabel');
-      if (fbLbl) fbLbl.textContent = fallbackShort;
+      if (fbLbl) fbLbl.textContent = 'DISABLED (h.shy.cx ONLY)';
     }
 
-    function updateApiStatusIndicator(ok, hostUrl = state.apiBase, versionText = '') {
+    function updateApiStatusIndicator(ok, _hostUrl = API_BASE, versionText = '') {
       const dot = document.getElementById('apiStatusDot');
       const txt = document.getElementById('apiStatusText');
-      const hostShort = formatShortHost(hostUrl || state.apiBase);
       updateEndpointLabels();
       if (ok) {
-        dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0';
-        txt.textContent = `${hostShort} ${versionText}`.trim();
+        dot.className = 'w-1.5 h-1.5 bg-emerald-400 shrink-0';
+        txt.textContent = `h.shy.cx ${versionText}`.trim();
       } else {
-        dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0';
-        txt.textContent = `${hostShort} (Offline)`;
+        dot.className = 'w-1.5 h-1.5 bg-rose-400 shrink-0';
+        txt.textContent = 'h.shy.cx [ERR]';
       }
     }
 
     // =========================================================================
-    // STREAM URL RESOLUTION, MPD fMP4 ENGINE, PLAYBACK & DOWNLOAD
+    // h.shy.cx FULL-LENGTH STREAM ENGINE (NO PREVIEWS, NO EXTERNAL FALLBACKS)
     // =========================================================================
     const audio = document.getElementById('audioElement');
     let dashPlayer = null;
@@ -1285,39 +1419,82 @@
       return atob(padded);
     }
 
-    function sanitizeCdnUrl(url) {
-      if (!url) return '';
-      // Replace -ad- Fastly hostname with clean Fastly hostname that is not blocked by browser ad blockers
-      return String(url)
-        .replace('://sp-ad-fa.audio.tidal.com/', '://sp-pr-fa.audio.tidal.com/')
-        .replace('://sp-ad-cf.audio.tidal.com/', '://sp-pr-cf.audio.tidal.com/');
+    function parseIsoDurationSeconds(isoStr) {
+      if (!isoStr) return 0;
+      const m = String(isoStr).match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/i);
+      if (!m) return 0;
+      return (parseFloat(m[1] || '0') * 3600) + (parseFloat(m[2] || '0') * 60) + parseFloat(m[3] || '0');
     }
 
-    function parseMpdSegments(mpdXml) {
+    function parseMpdSegments(mpdXml, preferredQuality = 'LOSSLESS') {
       try {
         const parser = new DOMParser();
         const doc = parser.parseFromString(mpdXml, 'application/xml');
-        const segTpl = doc.querySelector('SegmentTemplate');
+        const reps = Array.from(doc.querySelectorAll('Representation'));
+
+        let chosenRep = reps[0] || null;
+        if (reps.length > 1) {
+          const wantFlac = preferredQuality === 'HI_RES_LOSSLESS' || preferredQuality === 'LOSSLESS';
+          const filtered = reps.filter(r => {
+            const c = (r.getAttribute('codecs') || '').toLowerCase();
+            return wantFlac ? c.includes('flac') : c.includes('mp4a');
+          });
+          const pool = filtered.length ? filtered : reps;
+          pool.sort((a, b) => Number(b.getAttribute('bandwidth') || 0) - Number(a.getAttribute('bandwidth') || 0));
+          chosenRep = preferredQuality === 'LOW' ? pool[pool.length - 1] : pool[0];
+        }
+
+        const adapt = (chosenRep && chosenRep.closest('AdaptationSet')) || doc.querySelector('AdaptationSet');
+        const segTpl = (chosenRep && chosenRep.querySelector('SegmentTemplate'))
+          || (adapt && adapt.querySelector('SegmentTemplate'))
+          || doc.querySelector('SegmentTemplate');
         if (!segTpl) return null;
 
-        const rawInitUrl = segTpl.getAttribute('initialization');
-        const rawMediaTpl = segTpl.getAttribute('media');
+        let rawInitUrl = segTpl.getAttribute('initialization');
+        let rawMediaTpl = segTpl.getAttribute('media');
         if (!rawInitUrl || !rawMediaTpl) return null;
 
-        const initUrl = sanitizeCdnUrl(rawInitUrl);
-        const mediaTpl = sanitizeCdnUrl(rawMediaTpl);
-        const startNum = parseInt(segTpl.getAttribute('startNumber') || '1', 10);
-        const rep = doc.querySelector('Representation');
-        const adapt = doc.querySelector('AdaptationSet');
-        const mimeType = (rep && rep.getAttribute('mimeType')) || (adapt && adapt.getAttribute('mimeType')) || 'audio/mp4';
-        const codecs = (rep && rep.getAttribute('codecs')) || 'flac';
+        const repId = (chosenRep && chosenRep.getAttribute('id')) || '';
+        const bandwidth = (chosenRep && chosenRep.getAttribute('bandwidth')) || '';
+        rawInitUrl = rawInitUrl.replace(/\$RepresentationID\$/g, repId).replace(/\$Bandwidth\$/g, bandwidth);
+        rawMediaTpl = rawMediaTpl.replace(/\$RepresentationID\$/g, repId).replace(/\$Bandwidth\$/g, bandwidth);
 
-        const sNodes = segTpl.querySelectorAll('SegmentTimeline > S');
+        const initUrl = rawInitUrl;
+        const mediaTpl = rawMediaTpl;
+        const startNum = parseInt(segTpl.getAttribute('startNumber') || '1', 10);
+        const mimeType = (chosenRep && chosenRep.getAttribute('mimeType')) || (adapt && adapt.getAttribute('mimeType')) || 'audio/mp4';
+        const codecs = (chosenRep && chosenRep.getAttribute('codecs')) || 'flac';
+
+        // Calculate full track segment count from SegmentTimeline or mediaPresentationDuration
+        const mpdRoot = doc.querySelector('MPD');
+        const totalDurationSec = parseIsoDurationSeconds(mpdRoot && mpdRoot.getAttribute('mediaPresentationDuration'));
+        const timescale = parseFloat(segTpl.getAttribute('timescale') || '44100');
+
+        const sNodes = Array.from(segTpl.querySelectorAll('SegmentTimeline > S, S'));
         let totalSegments = 0;
-        sNodes.forEach(s => {
-          const repeat = parseInt(s.getAttribute('r') || '0', 10);
-          totalSegments += (repeat + 1);
-        });
+        let accumulatedTicks = 0;
+
+        if (sNodes.length > 0) {
+          sNodes.forEach(s => {
+            const d = parseFloat(s.getAttribute('d') || '0');
+            const repeat = parseInt(s.getAttribute('r') || '0', 10);
+            if (repeat < 0 && d > 0 && totalDurationSec > 0) {
+              const remainingTicks = Math.max(0, (totalDurationSec * timescale) - accumulatedTicks);
+              const count = Math.ceil(remainingTicks / d);
+              totalSegments += count;
+              accumulatedTicks += count * d;
+            } else {
+              const count = Math.max(1, repeat + 1);
+              totalSegments += count;
+              accumulatedTicks += count * d;
+            }
+          });
+        } else {
+          const segDur = parseFloat(segTpl.getAttribute('duration') || '0');
+          if (segDur > 0 && totalDurationSec > 0) {
+            totalSegments = Math.ceil((totalDurationSec * timescale) / segDur);
+          }
+        }
         if (totalSegments <= 0) totalSegments = 1;
 
         const segmentUrls = [];
@@ -1326,140 +1503,163 @@
           segmentUrls.push(mediaTpl.replace(/\$Number\$/g, String(num)));
         }
 
-        return { initUrl, segmentUrls, mimeType, codecs };
+        return { initUrl, segmentUrls, mimeType, codecs, repId, totalDurationSec };
       } catch (e) {
         console.warn('MPD XML parse warning:', e);
         return null;
       }
     }
 
-    async function resolveStreamUrl(trackId, preferredQuality, options = {}) {
-      const baseOrder = preferredQuality === 'HI_RES_LOSSLESS'
-        ? ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW']
-        : preferredQuality === 'LOSSLESS'
-        ? ['LOSSLESS', 'HIGH', 'LOW']
-        : preferredQuality === 'HIGH'
-        ? ['HIGH', 'LOSSLESS', 'LOW']
-        : ['LOW', 'HIGH', 'LOSSLESS'];
-
-      const qualitiesToTry = options.exactQualityOnly ? [preferredQuality] : [];
-      if (!options.exactQualityOnly) {
-        for (const q of baseOrder) {
-          if (options.excludeQuality && q === options.excludeQuality) continue;
-          if (!qualitiesToTry.includes(q)) qualitiesToTry.push(q);
-        }
-      }
-
-      const bases = getOrderedApiBases();
-      let lastError = null;
-
-      for (const base of bases) {
-        const cleanBase = cleanUrl(base);
-        // 1. Try /track/?id={id}&quality={q}
-        for (const q of qualitiesToTry) {
-          try {
-            const trackUrl = cleanBase + `/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`;
-            const res = await fetch(trackUrl, { headers: { 'Accept': 'application/json' } });
-            let json = null;
-
-            if (res.status === 202) {
-              const pending = await res.json();
-              json = await pollPlaybackRequest(cleanBase, pending);
-            } else if (res.ok) {
-              json = await res.json();
-              if (json && json.status === 'pending' && (json.statusUrl || json.requestId)) {
-                json = await pollPlaybackRequest(cleanBase, json);
-              }
-            } else {
-              lastError = new Error(`HTTP ${res.status} from ${formatShortHost(cleanBase)}`);
-              continue;
-            }
-
-            const extracted = extractDirectUrlFromTrackResponse(json);
-            if (!extracted) {
-              lastError = new Error(`Unrecognized manifest from ${formatShortHost(cleanBase)}`);
-              continue;
-            }
-
-            updateApiStatusIndicator(true, cleanBase);
-            return {
-              ...extracted,
-              qualityUsed: extracted.actualQuality || q,
-              hostUsed: cleanBase
-            };
-          } catch (err) {
-            lastError = err;
-          }
-        }
-
-        // 2. Fallback to newer /trackManifests/ endpoint on the same instance if /track/ failed
-        try {
-          const tmUrl = cleanBase + `/trackManifests/?id=${encodeURIComponent(trackId)}&formats=FLAC&formats=AACLC&formats=HEAACV1&uriScheme=DATA&usage=PLAYBACK`;
-          const tmRes = await fetch(tmUrl, { headers: { 'Accept': 'application/json' } });
-          if (tmRes.ok) {
-            const tmJson = await tmRes.json();
-            const extractedTm = extractFromTrackManifestsEndpoint(tmJson);
-            if (extractedTm) {
-              updateApiStatusIndicator(true, cleanBase);
-              return {
-                ...extractedTm,
-                qualityUsed: preferredQuality,
-                hostUsed: cleanBase
-              };
-            }
-          }
-        } catch (tmErr) {
-          if (!lastError) lastError = tmErr;
-        }
-      }
-
-      throw lastError || new Error('Could not resolve playable stream from configured API endpoints');
+    function buildTrackManifestsQuery(trackId, quality, uriScheme = 'DATA', manifestType = 'MPEG_DASH', adaptive = true, usage = 'PLAYBACK') {
+      const formatsByQuality = {
+        HI_RES_LOSSLESS: ['FLAC_HIRES', 'FLAC', 'AACLC', 'HEAACV1'],
+        LOSSLESS: ['FLAC', 'AACLC', 'HEAACV1'],
+        HIGH: ['AACLC', 'HEAACV1'],
+        LOW: ['HEAACV1']
+      };
+      const allFormats = formatsByQuality[quality] || formatsByQuality.LOSSLESS;
+      const formats = adaptive ? allFormats : [allFormats[0]];
+      const fmtParams = formats.map(f => `formats=${encodeURIComponent(f)}`).join('&');
+      return `/trackManifests/?id=${encodeURIComponent(trackId)}&${fmtParams}&uriScheme=${encodeURIComponent(uriScheme)}&manifestType=${encodeURIComponent(manifestType)}&usage=${encodeURIComponent(usage)}&adaptive=${adaptive ? 'true' : 'false'}`;
     }
 
-    function extractFromTrackManifestsEndpoint(json) {
+    async function fetchTrackManifestsFromBase(_cleanBase, trackId, quality, uriScheme = 'DATA', manifestType = 'MPEG_DASH', reqId = null) {
+      const qAdaptive = buildTrackManifestsQuery(trackId, quality, uriScheme, manifestType, true, 'PLAYBACK');
+      const qSingle = buildTrackManifestsQuery(trackId, quality, uriScheme, manifestType, false, 'DOWNLOAD');
+      const paths = [
+        qAdaptive,
+        qAdaptive.replace('/trackManifests/', '/trackmanifests/'),
+        qSingle
+      ];
+      let lastErr = null;
+
+      for (const p of paths) {
+        try {
+          return await apiFetch(p, { reqId });
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      throw lastErr || new Error('h.shy.cx /trackManifests/ request failed');
+    }
+
+    function extractFromTrackManifestsEndpoint(json, requestedQuality = 'LOSSLESS') {
       try {
-        const attrs = json?.data?.data?.attributes || json?.data?.attributes || json?.attributes;
-        if (!attrs || !attrs.uri) return null;
-        const uri = String(attrs.uri);
-        if (uri.startsWith('data:')) {
-          const commaIdx = uri.indexOf(',');
-          if (commaIdx !== -1) {
-            const b64 = uri.slice(commaIdx + 1);
-            return decodeManifestToUrl(b64, 'application/dash+xml', 'LOSSLESS');
+        if (!json) return null;
+        const attrs = json?.data?.data?.attributes || json?.data?.attributes || json?.attributes || null;
+        if (attrs?.trackPresentation === 'PREVIEW' || json?.data?.assetPresentation === 'PREVIEW') {
+          throw new Error('Upstream returned a preview manifest; full track required');
+        }
+        const formats = Array.isArray(attrs?.formats) ? attrs.formats : [];
+        let reportedQuality = requestedQuality;
+        if (formats.includes('FLAC_HIRES')) reportedQuality = 'HI_RES_LOSSLESS';
+        else if (formats.includes('FLAC')) reportedQuality = 'LOSSLESS';
+        else if (formats.includes('AACLC')) reportedQuality = 'HIGH';
+        else if (formats.includes('HEAACV1')) reportedQuality = 'LOW';
+
+        if (attrs && attrs.uri) {
+          const uri = String(attrs.uri);
+          if (uri.startsWith('data:')) {
+            const commaIdx = uri.indexOf(',');
+            if (commaIdx !== -1) {
+              const meta = uri.slice(5, commaIdx);
+              const mimeType = meta.split(';')[0] || 'application/dash+xml';
+              const b64 = uri.slice(commaIdx + 1);
+              const decoded = decodeManifestToUrl(b64, mimeType, reportedQuality);
+              if (decoded) {
+                decoded.fromTrackManifests = true;
+                decoded.formats = formats;
+                return decoded;
+              }
+            }
+          }
+          if (uri.startsWith('http')) {
+            const isHls = uri.includes('.m3u8') || attrs.manifestType === 'HLS';
+            const isDirectAudio = /\.(flac|m4a|mp4|mp3|aac)(\?|$)/i.test(uri) && !uri.includes('.mpd');
+            if (isDirectAudio) {
+              return {
+                url: uri,
+                mimeType: uri.includes('.flac') ? 'audio/flac' : 'audio/mp4',
+                isDash: false,
+                fromTrackManifests: true,
+                formats,
+                actualQuality: reportedQuality
+              };
+            }
+            return {
+              url: uri,
+              mimeType: isHls ? 'application/vnd.apple.mpegurl' : 'application/dash+xml',
+              isDash: !isHls,
+              isHls,
+              isRemoteMpd: !isHls,
+              fromTrackManifests: true,
+              formats,
+              actualQuality: reportedQuality
+            };
           }
         }
-        if (uri.startsWith('http')) {
-          return { url: uri, mimeType: 'application/dash+xml', isDash: true, actualQuality: 'LOSSLESS' };
+
+        const rawManifest = attrs?.manifest || json?.data?.manifest || json?.manifest;
+        const rawMime = attrs?.manifestMimeType || json?.data?.manifestMimeType || json?.manifestMimeType || 'application/dash+xml';
+        if (rawManifest) {
+          const decoded = decodeManifestToUrl(rawManifest, rawMime, reportedQuality);
+          if (decoded) {
+            decoded.fromTrackManifests = true;
+            decoded.formats = formats;
+            return decoded;
+          }
         }
-      } catch (_) {}
+      } catch (e) {
+        console.warn('extractFromTrackManifestsEndpoint warning:', e);
+      }
       return null;
     }
 
-    function extractDirectUrlFromTrackResponse(json) {
+    async function hydrateRemoteMpdIfNeeded(extracted, preferredQuality = 'LOSSLESS') {
+      if (!extracted || !extracted.isRemoteMpd || extracted.mpdSegments) return extracted;
+      try {
+        const res = await fetch(extracted.url);
+        if (res.ok) {
+          const xmlText = await res.text();
+          if (xmlText && xmlText.includes('<MPD')) {
+            extracted.mpdXml = xmlText;
+            extracted.mpdSegments = parseMpdSegments(xmlText, extracted.actualQuality || preferredQuality);
+          }
+        }
+      } catch (e) {
+        console.warn('Remote MPD fetch warning:', e);
+      }
+      return extracted;
+    }
+
+    function extractDirectUrlFromTrackResponse(json, requestedQuality = 'LOSSLESS') {
       if (!json) return null;
+      if (json?.data?.data?.type === 'trackManifests' || json?.data?.type === 'trackManifests') {
+        return extractFromTrackManifestsEndpoint(json, requestedQuality);
+      }
       if (Array.isArray(json)) {
         for (const item of json) {
           if (item && item.OriginalTrackUrl) {
-            return { url: item.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false };
+            return { url: item.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false, actualQuality: item.audioQuality || requestedQuality };
           }
           if (item && item.manifest) {
-            const u = decodeManifestToUrl(item.manifest, item.manifestMimeType, item.audioQuality);
+            const u = decodeManifestToUrl(item.manifest, item.manifestMimeType, item.audioQuality || requestedQuality);
             if (u) return u;
           }
         }
       }
       const d = json.data || json;
       if (d.OriginalTrackUrl) {
-        return { url: d.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality };
+        return { url: d.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality || requestedQuality };
       }
       if (d.url && typeof d.url === 'string' && d.url.startsWith('http') && !d.url.includes('tidal.com/track') && !d.url.includes('tidal.com/browse')) {
-        return { url: d.url, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality };
+        return { url: d.url, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality || requestedQuality };
       }
       if (d.streamUrl) {
-        return { url: d.streamUrl, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality };
+        return { url: d.streamUrl, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality || requestedQuality };
       }
       if (d.manifest) {
-        return decodeManifestToUrl(d.manifest, d.manifestMimeType, d.audioQuality);
+        return decodeManifestToUrl(d.manifest, d.manifestMimeType, d.audioQuality || requestedQuality);
       }
       return null;
     }
@@ -1468,6 +1668,7 @@
       try {
         const decoded = safeBase64Decode(manifestB64).trim();
         // 1. Standard Tidal BTS JSON manifest: { mimeType, codecs, encryptionType, urls: [...] }
+        // Single-file full-length URL played natively by <audio src="..."> with ZERO CORS issues!
         if ((mimeType && mimeType.includes('tidal.bts')) || decoded.startsWith('{')) {
           const parsed = JSON.parse(decoded);
           if (parsed.urls && parsed.urls.length > 0) {
@@ -1482,6 +1683,7 @@
         }
         // 2. MPEG-DASH XML manifest (application/dash+xml)
         if ((mimeType && mimeType.includes('dash+xml')) || decoded.startsWith('<')) {
+          // If the MPD contains a <BaseURL>, it is a single-file SegmentBase fMP4 stream!
           const baseMatch = decoded.match(/<BaseURL>([^<]+)<\/BaseURL>/);
           if (baseMatch && baseMatch[1]) {
             const rawUrl = baseMatch[1].replace(/&amp;/g, '&').trim();
@@ -1489,7 +1691,7 @@
               return { url: rawUrl, mimeType: 'audio/mp4', isDash: false, actualQuality: reportedQuality };
             }
           }
-          const mpdSegments = parseMpdSegments(decoded);
+          const mpdSegments = parseMpdSegments(decoded, reportedQuality || state.quality);
           const dataUri = 'data:application/dash+xml;base64,' + btoa(unescape(encodeURIComponent(decoded)));
           return {
             url: dataUri,
@@ -1506,6 +1708,123 @@
       return null;
     }
 
+    // Resolve stream strictly from https://h.shy.cx
+    // Order of operations:
+    // 1. Query GET https://h.shy.cx/track/?id={id}&quality={q} across the quality ladder.
+    //    - If h.shy.cx returns a single-file BTS URL (!extracted.isDash), return it immediately (plays natively in <audio> with zero CORS!).
+    //    - If h.shy.cx returns a DASH manifest (extracted.isDash), keep the best DASH candidate while checking if a single-file BTS stream is requested.
+    // 2. If /track/ fails or caller prefers /trackManifests/, query GET https://h.shy.cx/trackManifests/.
+    async function resolveStreamUrl(trackId, preferredQuality, options = {}) {
+      await cancelPreviousQueueRequestIfNeeded();
+      const reqId = options.reqId ?? currentPlayReqId;
+
+      const qualityLadder = options.btsOnly
+        ? ['HIGH', 'LOW', 'LOSSLESS']
+        : preferredQuality === 'HI_RES_LOSSLESS'
+        ? ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW']
+        : preferredQuality === 'LOSSLESS'
+        ? ['LOSSLESS', 'HIGH', 'LOW']
+        : preferredQuality === 'HIGH'
+        ? ['HIGH', 'LOW', 'LOSSLESS']
+        : ['LOW', 'HIGH', 'LOSSLESS'];
+
+      let dashCandidate = null;
+      let lastError = null;
+
+      // 1. If not btsOnly and user explicitly requested HI_RES_LOSSLESS, try /trackManifests/ first
+      if (!options.btsOnly && (preferredQuality === 'HI_RES_LOSSLESS' || options.onlyTrackManifests)) {
+        try {
+          const tmJson = await fetchTrackManifestsFromBase(API_BASE, trackId, preferredQuality, 'DATA', 'MPEG_DASH', reqId);
+          let extractedTm = extractFromTrackManifestsEndpoint(tmJson, preferredQuality);
+          if (extractedTm) {
+            extractedTm = await hydrateRemoteMpdIfNeeded(extractedTm, preferredQuality);
+            if (!extractedTm.isDash) {
+              return {
+                ...extractedTm,
+                qualityUsed: extractedTm.actualQuality || preferredQuality,
+                hostUsed: API_BASE,
+                endpointUsed: '/trackManifests/'
+              };
+            }
+            dashCandidate = {
+              ...extractedTm,
+              qualityUsed: extractedTm.actualQuality || preferredQuality,
+              hostUsed: API_BASE,
+              endpointUsed: '/trackManifests/'
+            };
+            if (!options.btsOnly) return dashCandidate;
+          }
+        } catch (tmErr) {
+          lastError = tmErr;
+        }
+      }
+
+      // 2. Query GET https://h.shy.cx/track/?id={id}&quality={q} sequentially (respecting single-flight queue)
+      const qualitiesToProbe = options.btsOnly ? qualityLadder : [preferredQuality];
+      for (const q of qualitiesToProbe) {
+        if (reqId !== currentPlayReqId) throw new Error('Playback request superseded');
+        try {
+          const json = await apiFetch(`/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`, { reqId });
+          let extracted = extractDirectUrlFromTrackResponse(json, q);
+          if (!extracted) {
+            lastError = new Error(`Empty manifest on /track/?quality=${q}`);
+            continue;
+          }
+          extracted = await hydrateRemoteMpdIfNeeded(extracted, q);
+
+          if (!extracted.isDash) {
+            termLog(`resolved single-file BTS stream from h.shy.cx/track/ [quality=${extracted.actualQuality || q}]`, 'ok');
+            return {
+              ...extracted,
+              qualityUsed: extracted.actualQuality || q,
+              hostUsed: API_BASE,
+              endpointUsed: '/track/ (BTS)'
+            };
+          }
+
+          if (!dashCandidate) {
+            dashCandidate = {
+              ...extracted,
+              qualityUsed: extracted.actualQuality || q,
+              hostUsed: API_BASE,
+              endpointUsed: '/track/ (DASH)'
+            };
+          }
+
+          if (!options.btsOnly) {
+            return dashCandidate;
+          }
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      // 3. If /track/ didn't yield a manifest yet, try /trackManifests/ on https://h.shy.cx
+      if (!dashCandidate && !options.btsOnly) {
+        try {
+          const tmJson = await fetchTrackManifestsFromBase(API_BASE, trackId, preferredQuality, 'DATA', 'MPEG_DASH', reqId);
+          let extractedTm = extractFromTrackManifestsEndpoint(tmJson, preferredQuality);
+          if (extractedTm) {
+            extractedTm = await hydrateRemoteMpdIfNeeded(extractedTm, preferredQuality);
+            return {
+              ...extractedTm,
+              qualityUsed: extractedTm.actualQuality || preferredQuality,
+              hostUsed: API_BASE,
+              endpointUsed: '/trackManifests/'
+            };
+          }
+        } catch (tmErr) {
+          lastError = tmErr;
+        }
+      }
+
+      if (dashCandidate) {
+        return dashCandidate;
+      }
+
+      throw lastError || new Error('h.shy.cx could not resolve a manifest for this track');
+    }
+
     let preferredSegmentRoute = null;
 
     function isValidMp4Segment(buf) {
@@ -1520,73 +1839,99 @@
     }
 
     function buildSegmentRouteUrl(segUrl, routeName) {
-      const cleanSeg = sanitizeCdnUrl(segUrl);
-      if (routeName === 'fastly-pr') {
-        return cleanSeg;
-      }
-      if (routeName === 'fastly-lgf') {
-        return cleanSeg.replace('://sp-pr-fa.audio.tidal.com/', '://lgf.audio.tidal.com/')
-                       .replace('://sp-ad-fa.audio.tidal.com/', '://lgf.audio.tidal.com/');
-      }
-      if (routeName === 'corsproxy') {
-        return 'https://corsproxy.io/?url=' + encodeURIComponent(cleanSeg);
-      }
-      if (routeName === 'allorigins') {
-        return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(cleanSeg);
-      }
-      if (routeName === 'codetabs') {
-        return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(cleanSeg);
+      if (routeName === 'custom' && state.segmentProxyUrl) {
+        const prefix = state.segmentProxyUrl.trim();
+        if (prefix.includes('{url}')) return prefix.replace('{url}', encodeURIComponent(segUrl));
+        if (prefix.endsWith('=') || prefix.endsWith('?')) return prefix + encodeURIComponent(segUrl);
+        return prefix + (prefix.endsWith('/') ? '' : '/') + segUrl;
       }
       if (routeName === 'direct') {
         return segUrl;
       }
-      return cleanSeg;
+      if (routeName === 'fastly-pr') {
+        return segUrl.replace('://sp-ad-fa.audio.tidal.com/', '://sp-pr-fa.audio.tidal.com/');
+      }
+      if (routeName === 'cors-lol') {
+        return 'https://api.cors.lol/?url=' + encodeURIComponent(segUrl);
+      }
+      if (routeName === 'cors-eu') {
+        return 'https://cors.eu.org/' + segUrl;
+      }
+      if (routeName === 'cors-workers') {
+        return 'https://test.cors.workers.dev/?' + encodeURIComponent(segUrl);
+      }
+      if (routeName === 'thingproxy') {
+        return 'https://thingproxy.freeboard.io/fetch/' + segUrl;
+      }
+      if (routeName === 'reef-proxy') {
+        return 'https://reef-proxy.onrender.com/get?url=' + encodeURIComponent(segUrl);
+      }
+      return segUrl;
     }
 
-    async function fetchArrayBuffer(segUrl) {
-      const baseRoutes = ['fastly-pr', 'fastly-lgf', 'corsproxy', 'allorigins', 'codetabs', 'direct'];
-      const orderedRoutes = [];
-      if (preferredSegmentRoute && baseRoutes.includes(preferredSegmentRoute)) {
-        orderedRoutes.push(preferredSegmentRoute);
-      }
-      for (const rName of baseRoutes) {
-        if (!orderedRoutes.includes(rName)) {
-          orderedRoutes.push(rName);
+    async function fetchSingleSegmentRoute(segUrl, routeName, timeoutMs = 4500) {
+      const targetUrl = buildSegmentRouteUrl(segUrl, routeName);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const r = await fetch(targetUrl, {
+          signal: ctrl.signal,
+          referrerPolicy: 'no-referrer'
+        });
+        clearTimeout(timer);
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status} via ${routeName}`);
         }
+        const buf = await r.arrayBuffer();
+        if (!isValidMp4Segment(buf)) {
+          throw new Error(`Invalid MP4 box via ${routeName}`);
+        }
+        return { buf, routeName };
+      } catch (err) {
+        clearTimeout(timer);
+        throw err;
       }
+    }
 
-      let lastErr = null;
-      for (const routeName of orderedRoutes) {
-        const targetUrl = buildSegmentRouteUrl(segUrl, routeName);
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 3500);
+    async function fetchArrayBuffer(segUrl, retryCount = 2) {
+      const allRoutes = [
+        ...(state.segmentProxyUrl ? ['custom'] : []),
+        'direct',
+        'fastly-pr',
+        'cors-lol',
+        'cors-eu',
+        'cors-workers',
+        'thingproxy',
+        'reef-proxy'
+      ];
+
+      for (let attempt = 0; attempt <= retryCount; attempt++) {
+        if (preferredSegmentRoute) {
+          try {
+            const res = await fetchSingleSegmentRoute(segUrl, preferredSegmentRoute, 4500);
+            return res.buf;
+          } catch (_) {
+            preferredSegmentRoute = null;
+          }
+        }
+
         try {
-          const r = await fetch(targetUrl, {
-            signal: ctrl.signal,
-            referrerPolicy: 'no-referrer'
-          });
-          clearTimeout(timer);
-          if (!r.ok) {
-            lastErr = new Error(`Segment HTTP ${r.status} via ${routeName}`);
-            continue;
+          const winner = await Promise.any(
+            allRoutes.map(rName => fetchSingleSegmentRoute(segUrl, rName, 4500))
+          );
+          preferredSegmentRoute = winner.routeName;
+          return winner.buf;
+        } catch (aggErr) {
+          if (attempt < retryCount) {
+            await new Promise(r => setTimeout(r, 350 * (attempt + 1)));
           }
-          const buf = await r.arrayBuffer();
-          if (!isValidMp4Segment(buf)) {
-            lastErr = new Error(`Invalid segment payload via ${routeName}`);
-            continue;
-          }
-          preferredSegmentRoute = routeName;
-          return buf;
-        } catch (err) {
-          clearTimeout(timer);
-          lastErr = err;
         }
       }
-
-      throw lastErr || new Error('Segment download blocked by CORS or network filter');
+      throw new Error('DASH segment fetch blocked by browser CORS');
     }
 
-    // Stream MPD segments using native MediaSource Extensions (MSE) so the first 4s segment starts playing immediately
+    // Stream full-length MPD segments using native MediaSource Extensions (MSE) with paced buffering
+    // so all segments of the full song stream smoothly without triggering HTTP 429 rate limits
     async function playMpdViaNativeMse(mpdSegments, reqId) {
       if (!window.MediaSource) throw new Error('MediaSource API unavailable');
       const codecCandidates = [
@@ -1602,13 +1947,10 @@
         throw new Error('MSE codec not supported for direct SourceBuffer');
       }
 
-      // Pre-fetch initialization segment (0.mp4) + first media segment (1.mp4) before attaching MediaSource
       const firstSegUrl = mpdSegments.segmentUrls[0];
-      const [initBuf, firstSegBuf] = await Promise.all([
-        mpdSegments._cachedInit || fetchArrayBuffer(mpdSegments.initUrl),
-        mpdSegments._cachedFirst || fetchArrayBuffer(firstSegUrl)
-      ]);
+      const initBuf = mpdSegments._cachedInit || await fetchArrayBuffer(mpdSegments.initUrl);
       mpdSegments._cachedInit = initBuf;
+      const firstSegBuf = mpdSegments._cachedFirst || await fetchArrayBuffer(firstSegUrl);
       mpdSegments._cachedFirst = firstSegBuf;
       if (reqId !== currentPlayReqId) return;
 
@@ -1620,7 +1962,7 @@
       audio.src = activeMediaSourceUrl;
 
       await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('MediaSource open timeout')), 4000);
+        const timeout = setTimeout(() => reject(new Error('MediaSource open timeout')), 3500);
         ms.addEventListener('sourceopen', () => {
           clearTimeout(timeout);
           resolve();
@@ -1628,6 +1970,10 @@
       });
 
       if (reqId !== currentPlayReqId) return;
+
+      if (mpdSegments.totalDurationSec > 0 && isFinite(mpdSegments.totalDurationSec)) {
+        try { ms.duration = mpdSegments.totalDurationSec; } catch (_) {}
+      }
 
       const sb = ms.addSourceBuffer(supportedMime);
       const appendChunk = (buf) => new Promise((resolve, reject) => {
@@ -1649,88 +1995,42 @@
       await appendChunk(initBuf);
       await appendChunk(firstSegBuf);
 
-      // Start playback right away as soon as segment #1 is buffered
+      termLog(`MSE streaming started (${mpdSegments.segmentUrls.length} segments, route=${preferredSegmentRoute || 'direct'})`, 'ok');
       await audio.play();
 
-      // Pump remaining segments in the background
+      // Paced background segment pump: keeps buffer ~24s ahead of currentTime without flooding relays
       (async () => {
         try {
           for (let i = 1; i < mpdSegments.segmentUrls.length; i++) {
             if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
-            const segBuf = await fetchArrayBuffer(mpdSegments.segmentUrls[i]);
+
+            // Flow control: if we already have >24s buffered ahead of currentTime, wait a moment
+            while (reqId === currentPlayReqId && ms.readyState === 'open' && sb.buffered.length > 0) {
+              const bufferedEnd = sb.buffered.end(sb.buffered.length - 1);
+              const ahead = bufferedEnd - (audio.currentTime || 0);
+              if (ahead < 24 || i < 3) break;
+              await new Promise(r => setTimeout(r, 500));
+            }
+            if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
+
+            const segBuf = await fetchArrayBuffer(mpdSegments.segmentUrls[i], 3);
             if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
             await appendChunk(segBuf);
+
+            // Light pacing pause after initial 3 segments so public relays never HTTP 429
+            if (i >= 2) {
+              await new Promise(r => setTimeout(r, 180));
+            }
           }
           if (reqId === currentPlayReqId && ms.readyState === 'open' && !sb.updating) {
             try { ms.endOfStream(); } catch (_) {}
+            termLog(`MSE full track buffered (${mpdSegments.segmentUrls.length}/${mpdSegments.segmentUrls.length} segments)`, 'ok');
           }
         } catch (bgErr) {
-          console.warn('Background MSE segment pump stopped:', bgErr);
+          console.warn('Background MSE segment pump warning:', bgErr);
+          termLog(`MSE pump warning: ${bgErr.message}`, 'error');
         }
       })();
-    }
-
-    // Fallback for browsers where native <audio> plays fMP4 Blobs directly without MSE SourceBuffer
-    async function playMpdViaBlobConcatenation(mpdSegments, reqId) {
-      const initBuf = mpdSegments._cachedInit || await fetchArrayBuffer(mpdSegments.initUrl);
-      mpdSegments._cachedInit = initBuf;
-      if (reqId !== currentPlayReqId) return;
-
-      // Fetch first 3 segments (~12 seconds) so playback begins quickly
-      const initialCount = Math.min(3, mpdSegments.segmentUrls.length);
-      const initialSegs = [];
-      for (let i = 0; i < initialCount; i++) {
-        if (i === 0 && mpdSegments._cachedFirst) {
-          initialSegs.push(mpdSegments._cachedFirst);
-        } else {
-          initialSegs.push(await fetchArrayBuffer(mpdSegments.segmentUrls[i]));
-        }
-      }
-      if (reqId !== currentPlayReqId) return;
-
-      const allBuffers = [initBuf, ...initialSegs];
-      const blobMime = 'audio/mp4';
-      const initialBlob = new Blob(allBuffers, { type: blobMime });
-      if (activeMediaSourceUrl) {
-        try { URL.revokeObjectURL(activeMediaSourceUrl); } catch (_) {}
-      }
-      activeMediaSourceUrl = URL.createObjectURL(initialBlob);
-      audio.src = activeMediaSourceUrl;
-      audio.load();
-      await audio.play();
-
-      // Fetch remaining segments in background and seamlessly extend the audio blob
-      if (mpdSegments.segmentUrls.length > initialCount) {
-        (async () => {
-          try {
-            const remainingUrls = mpdSegments.segmentUrls.slice(initialCount);
-            const batchSize = 4;
-            for (let i = 0; i < remainingUrls.length; i += batchSize) {
-              if (reqId !== currentPlayReqId) return;
-              const batch = remainingUrls.slice(i, i + batchSize);
-              const bufs = await Promise.all(batch.map(u => fetchArrayBuffer(u)));
-              allBuffers.push(...bufs);
-            }
-            if (reqId !== currentPlayReqId) return;
-            const fullBlob = new Blob(allBuffers, { type: blobMime });
-            const newBlobUrl = URL.createObjectURL(fullBlob);
-            const resumeTime = audio.currentTime || 0;
-            const wasPaused = audio.paused;
-            const oldUrl = activeMediaSourceUrl;
-            activeMediaSourceUrl = newBlobUrl;
-            audio.src = newBlobUrl;
-            audio.currentTime = resumeTime;
-            if (!wasPaused) {
-              await audio.play().catch(() => {});
-            }
-            if (oldUrl) {
-              try { URL.revokeObjectURL(oldUrl); } catch (_) {}
-            }
-          } catch (e) {
-            console.warn('Background fMP4 assembly warning:', e);
-          }
-        })();
-      }
     }
 
     async function startAudioPlayback(resolved, reqId = currentPlayReqId) {
@@ -1743,32 +2043,30 @@
 
       if (resolved.isDash) {
         if (resolved.mpdSegments && resolved.mpdSegments.segmentUrls.length > 0) {
-          let mseError = null;
-          try {
-            await playMpdViaNativeMse(resolved.mpdSegments, reqId);
-            return;
-          } catch (err1) {
-            mseError = err1;
-          }
-          if (reqId !== currentPlayReqId) return;
-          try {
-            await playMpdViaBlobConcatenation(resolved.mpdSegments, reqId);
-            return;
-          } catch (err2) {
-            throw new Error(err2?.message || mseError?.message || 'DASH segment stream failed');
-          }
+          await playMpdViaNativeMse(resolved.mpdSegments, reqId);
+          return;
         }
         throw new Error('Unsupported DASH manifest structure');
       }
 
-      // Direct single-file stream URL (application/vnd.tidal.bts)
-      let directUrl = resolved.url;
-      if (directUrl.includes('://sp-ad-fa.audio.tidal.com/')) {
-        directUrl = directUrl.replace('://sp-ad-fa.audio.tidal.com/', '://sp-pr-fa.audio.tidal.com/');
-      }
-      audio.src = directUrl;
+      // Direct single-file BTS stream URL from https://h.shy.cx (application/vnd.tidal.bts)
+      // Plays the complete full-length file natively via <audio src="..."> with zero CORS restrictions!
+      const originalUrl = resolved.url;
+      audio.src = originalUrl;
       audio.load();
-      await audio.play();
+      try {
+        await audio.play();
+        termLog(`playing full-length direct BTS stream from h.shy.cx (${resolved.qualityUsed || state.quality})`, 'ok');
+      } catch (playErr) {
+        if (reqId !== currentPlayReqId) return;
+        if (originalUrl.includes('://sp-ad-fa.audio.tidal.com/')) {
+          audio.src = originalUrl.replace('://sp-ad-fa.audio.tidal.com/', '://sp-pr-fa.audio.tidal.com/');
+          audio.load();
+          await audio.play();
+        } else {
+          throw playErr;
+        }
+      }
     }
 
     async function downloadTrack(rawTrack, triggerBtn = null) {
@@ -1782,21 +2080,28 @@
       }
 
       const safeTitle = `${track.artist.name} - ${track.title}`.replace(/[\\/:*?"<>|]/g, '_');
-      showToast(`Preparing download: "${track.title}"...`);
+      showToast(`Fetching download from h.shy.cx: "${track.title}"...`);
 
       try {
-        const resolved = await resolveStreamUrl(track.id, state.quality);
+        let resolved = await resolveStreamUrl(track.id, state.quality, { reqId: currentPlayReqId });
+        if (resolved.isDash && resolved.mpdSegments) {
+          try {
+            const initBuf = await fetchArrayBuffer(resolved.mpdSegments.initUrl);
+            resolved.mpdSegments._cachedInit = initBuf;
+          } catch (_) {
+            resolved = await resolveStreamUrl(track.id, 'HIGH', { btsOnly: true, reqId: currentPlayReqId });
+          }
+        }
+
         const { url, mimeType, qualityUsed, isDash, mpdSegments } = resolved;
         const fileExt = (!isDash && mimeType && mimeType.includes('flac')) ? 'flac' : 'm4a';
         const fileName = `${safeTitle}.${fileExt}`;
 
         if (isDash && mpdSegments && mpdSegments.segmentUrls.length > 0) {
-          const chunks = [await fetchArrayBuffer(mpdSegments.initUrl)];
-          const batchSize = 4;
-          for (let i = 0; i < mpdSegments.segmentUrls.length; i += batchSize) {
-            const batch = mpdSegments.segmentUrls.slice(i, i + batchSize);
-            const bufs = await Promise.all(batch.map(u => fetchArrayBuffer(u)));
-            chunks.push(...bufs);
+          const chunks = [mpdSegments._cachedInit || await fetchArrayBuffer(mpdSegments.initUrl)];
+          for (let i = 0; i < mpdSegments.segmentUrls.length; i++) {
+            const segBuf = await fetchArrayBuffer(mpdSegments.segmentUrls[i], 3);
+            chunks.push(segBuf);
           }
           const blob = new Blob(chunks, { type: 'audio/mp4' });
           const blobUrl = URL.createObjectURL(blob);
@@ -1808,28 +2113,14 @@
           a.remove();
           setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
         } else {
-          try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error('Direct stream anchor download');
-            const blob = await res.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-          } catch (_) {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          }
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
         }
 
         const dlEntry = {
@@ -1841,7 +2132,7 @@
         state.downloads = [dlEntry, ...state.downloads.filter(d => d.id !== track.id)];
         saveState();
         renderDownloadsView();
-        showToast(`Downloaded "${fileName}"`, 'success');
+        showToast(`Saved "${fileName}"`, 'success');
       } catch (err) {
         showToast(`Download failed: ${err.message}`, 'error');
       } finally {
@@ -1852,52 +2143,100 @@
       }
     }
 
+    function probeAudioElementStream(streamUrl, timeoutMs = 5000) {
+      return new Promise((resolve, reject) => {
+        const probe = document.createElement('audio');
+        probe.muted = true;
+        probe.preload = 'metadata';
+        probe.referrerPolicy = 'no-referrer';
+        let settled = false;
+        const cleanup = () => {
+          clearTimeout(timer);
+          probe.onloadedmetadata = null;
+          probe.oncanplay = null;
+          probe.onerror = null;
+          try {
+            probe.pause();
+            probe.removeAttribute('src');
+            probe.load();
+          } catch (_) {}
+        };
+        const timer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            reject(new Error('Audio probe timeout'));
+          }
+        }, timeoutMs);
+        const onReady = () => {
+          if (!settled) {
+            settled = true;
+            const dur = Math.round(probe.duration || 0);
+            cleanup();
+            resolve({ duration: dur });
+          }
+        };
+        probe.onloadedmetadata = onReady;
+        probe.oncanplay = onReady;
+        probe.onerror = () => {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            reject(new Error('Audio element rejected stream URL'));
+          }
+        };
+        probe.src = streamUrl;
+        probe.load();
+      });
+    }
+
     async function runStreamPickupDiagnostics() {
       const box = document.getElementById('apiDiagOutput');
       const btn = document.getElementById('testStreamPickupBtn');
       if (!box) return;
       box.classList.remove('hidden');
-      box.innerHTML = '<div>Testing API manifest pickup and CDN segment transport...</div>';
+      box.innerHTML = '<div>[diag] probing https://h.shy.cx (/track/ BTS &amp; /trackManifests/ DASH)...</div>';
       if (btn) btn.disabled = true;
 
-      const endpoints = getOrderedApiBases();
-      const testTrack = state.queue[state.queueIndex] || state.searchResults[0] || state.history[0] || { id: 58990511, title: 'Airbag' };
+      const testTrack = state.queue[state.queueIndex] || state.searchResults[0] || state.history[0] || {
+        id: 58990511,
+        title: 'Airbag'
+      };
       const lines = [];
 
-      for (const base of endpoints) {
-        const shortHost = formatShortHost(base);
+      // 1. Test GET https://h.shy.cx/track/?id={id}&quality=HIGH (Single-File BTS Full-Length Stream)
+      try {
         const t0 = performance.now();
-        try {
-          const searchUrl = cleanUrl(base) + `/track/?id=${encodeURIComponent(testTrack.id)}&quality=${encodeURIComponent(state.quality)}`;
-          const res = await fetch(searchUrl, { headers: { 'Accept': 'application/json' } });
-          const ms = Math.round(performance.now() - t0);
-          if (res.status === 202) {
-            lines.push(`<div class="text-amber-400">• ${escapeHtml(shortHost)}: HTTP 202 Queue Active (${ms}ms)</div>`);
-          } else if (res.ok) {
-            const json = await res.json();
-            const d = json.data || json;
-            const mType = d.manifestMimeType || (Array.isArray(json) ? 'Legacy Array' : 'Unknown');
-            const extracted = extractDirectUrlFromTrackResponse(json);
-            if (extracted) {
-              if (extracted.isDash && extracted.mpdSegments) {
-                try {
-                  const segBuf = await fetchArrayBuffer(extracted.mpdSegments.initUrl);
-                  lines.push(`<div class="text-emerald-400">✓ ${escapeHtml(shortHost)}: Manifest & Segment OK (${ms}ms) — ${extracted.mpdSegments.segmentUrls.length} segs (${segBuf.byteLength}B init via ${escapeHtml(preferredSegmentRoute || 'direct')})</div>`);
-                } catch (segErr) {
-                  lines.push(`<div class="text-amber-400">• ${escapeHtml(shortHost)}: Manifest OK (${ms}ms), Segment err: ${escapeHtml(segErr.message)}</div>`);
-                }
-              } else {
-                lines.push(`<div class="text-emerald-400">✓ ${escapeHtml(shortHost)}: Direct BTS Stream OK (${ms}ms) — ${escapeHtml(mType)}</div>`);
-              }
-            } else {
-              lines.push(`<div class="text-amber-400">• ${escapeHtml(shortHost)}: HTTP 200 but no manifest (${ms}ms)</div>`);
-            }
-          } else {
-            lines.push(`<div class="text-rose-400">✗ ${escapeHtml(shortHost)}: HTTP ${res.status} (${ms}ms)</div>`);
-          }
-        } catch (err) {
-          lines.push(`<div class="text-rose-400">✗ ${escapeHtml(shortHost)}: ${escapeHtml(err.message)}</div>`);
+        const btsJson = await apiFetch(`/track/?id=${encodeURIComponent(testTrack.id)}&quality=HIGH`);
+        const btsMs = Math.round(performance.now() - t0);
+        const btsExtracted = extractDirectUrlFromTrackResponse(btsJson, 'HIGH');
+        if (btsExtracted && !btsExtracted.isDash) {
+          const probeRes = await probeAudioElementStream(btsExtracted.url);
+          lines.push(`<div class="theme-accent-text">[OK] h.shy.cx/track/?quality=HIGH -> Single-File BTS Verified (${btsMs}ms, full duration=${probeRes.duration}s)</div>`);
+        } else if (btsExtracted && btsExtracted.isDash) {
+          lines.push(`<div class="text-amber-400">[INFO] h.shy.cx/track/?quality=HIGH -> DASH MPD returned (${btsMs}ms, ${btsExtracted.mpdSegments?.segmentUrls?.length || 0} segments)</div>`);
         }
+      } catch (e) {
+        lines.push(`<div class="text-rose-400">[ERR] h.shy.cx/track/: ${escapeHtml(e.message)}</div>`);
+      }
+
+      // 2. Test GET https://h.shy.cx/trackManifests/ (v2 DASH MPD)
+      try {
+        const t1 = performance.now();
+        const tmJson = await fetchTrackManifestsFromBase(API_BASE, testTrack.id, state.quality, 'DATA', 'MPEG_DASH');
+        const tmMs = Math.round(performance.now() - t1);
+        let tmExtracted = extractFromTrackManifestsEndpoint(tmJson, state.quality);
+        tmExtracted = await hydrateRemoteMpdIfNeeded(tmExtracted, state.quality);
+        if (tmExtracted && tmExtracted.mpdSegments) {
+          try {
+            const segBuf = await fetchArrayBuffer(tmExtracted.mpdSegments.initUrl, 1);
+            lines.push(`<div class="theme-accent-text">[OK] h.shy.cx/trackManifests/ -> DASH MSE Ready (${tmMs}ms, ${tmExtracted.mpdSegments.segmentUrls.length} segments, ${segBuf.byteLength}B init via ${escapeHtml(preferredSegmentRoute || 'direct')})</div>`);
+          } catch (_) {
+            lines.push(`<div class="text-amber-400">[INFO] h.shy.cx/trackManifests/ -> Manifest OK (${tmMs}ms); browser blocked direct CDN fetch(), using h.shy.cx/track/ BTS full-length stream</div>`);
+          }
+        }
+      } catch (tmErr) {
+        lines.push(`<div class="text-rose-400">[ERR] h.shy.cx/trackManifests/: ${escapeHtml(tmErr.message)}</div>`);
       }
 
       box.innerHTML = lines.join('');
@@ -1911,6 +2250,7 @@
       if (!track) return;
 
       const reqId = ++currentPlayReqId;
+      await cancelPreviousQueueRequestIfNeeded();
 
       state.history = [track, ...state.history.filter(t => t.id !== track.id)].slice(0, 50);
       saveState();
@@ -1935,32 +2275,38 @@
         playPauseIcon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
       }
 
-      // Intelligent playback resolution:
-      // 1. Try user's preferred quality (e.g. LOSSLESS / HI-RES).
-      // 2. If it's a DASH stream and segment transport is blocked by browser CORS, automatically fall back to HIGH (320k AAC) which Tidal serves as a direct BTS stream that plays natively in <audio> with zero CORS restrictions.
-      // 3. If HIGH fails, fall back to LOW (96k AAC direct).
-      const candidateQualities = [];
-      for (const q of [state.quality, 'HIGH', 'LOW']) {
-        if (!candidateQualities.includes(q)) candidateQualities.push(q);
-      }
+      termLog(`playTrack id=${track.id} "${track.title}" via https://h.shy.cx [quality=${state.quality}]`);
 
       let playedSuccessfully = false;
       let finalQualityUsed = state.quality;
       let lastPlayError = null;
 
-      for (const qTry of candidateQualities) {
+      // Attempt 1: Resolve at user's selected quality on https://h.shy.cx (/track/ or /trackManifests/)
+      try {
+        const resolved = await resolveStreamUrl(track.id, state.quality, { reqId });
         if (reqId !== currentPlayReqId) return;
+        audio.volume = state.muted ? 0 : state.volume;
+        await startAudioPlayback(resolved, reqId);
+        playedSuccessfully = true;
+        finalQualityUsed = resolved.qualityUsed || state.quality;
+      } catch (primaryErr) {
+        lastPlayError = primaryErr;
+        termLog(`primary stream attempt (${state.quality}): ${primaryErr.message} -> escalating to h.shy.cx/track/ single-file BTS`, 'error');
+      }
+
+      // Attempt 2: If Attempt 1 returned a DASH manifest whose segments were blocked by browser CORS,
+      // stay 100% on https://h.shy.cx and request a single-file BTS stream (/track/?quality=HIGH / LOW / LOSSLESS)
+      // which plays the full-length track directly in <audio src="..."> with zero CORS restrictions!
+      if (!playedSuccessfully && reqId === currentPlayReqId) {
         try {
-          const resolved = await resolveStreamUrl(track.id, qTry, { exactQualityOnly: (qTry === state.quality) });
+          const btsResolved = await resolveStreamUrl(track.id, 'HIGH', { btsOnly: true, reqId });
           if (reqId !== currentPlayReqId) return;
           audio.volume = state.muted ? 0 : state.volume;
-          await startAudioPlayback(resolved, reqId);
+          await startAudioPlayback(btsResolved, reqId);
           playedSuccessfully = true;
-          finalQualityUsed = resolved.qualityUsed || qTry;
-          break;
-        } catch (err) {
-          lastPlayError = err;
-          console.warn(`Playback attempt at quality ${qTry} failed:`, err);
+          finalQualityUsed = btsResolved.qualityUsed || 'HIGH';
+        } catch (btsErr) {
+          lastPlayError = btsErr;
         }
       }
 
@@ -1978,8 +2324,8 @@
         state.isPlaying = false;
         updatePlayPauseButton();
         refreshTrackRowHighlights();
-        const cleanMsg = String(lastPlayError?.message || 'Stream unavailable').replace(/https?:\/\/[^\s]+/g, 'CDN segment');
-        showToast(`Playback failed for "${track.title}": ${cleanMsg}`, 'error');
+        const cleanMsg = String(lastPlayError?.message || 'Stream unavailable on h.shy.cx').replace(/https?:\/\/[^\s]+/g, 'CDN stream');
+        showToast(`h.shy.cx playback error for "${track.title}": ${cleanMsg}`, 'error');
       }
     }
 
@@ -3467,6 +3813,8 @@
         document.getElementById('apiBaseInput').value = state.apiBase;
         const fbInput = document.getElementById('fallbackApiInput');
         if (fbInput) fbInput.value = state.fallbackApiBase || FALLBACK_API_BASE;
+        const segProxyInput = document.getElementById('segmentProxyInput');
+        if (segProxyInput) segProxyInput.value = state.segmentProxyUrl || '';
         document.getElementById('failoverCheckbox').checked = state.enableFailover;
         document.getElementById('compactRowsCheckbox').checked = Boolean(state.compactRows);
         openModal('settingsModal');
@@ -3481,21 +3829,18 @@
         });
       });
       document.getElementById('saveSettingsModalBtn').addEventListener('click', () => {
-        const rawPrimary = cleanUrl(document.getElementById('apiBaseInput').value);
-        if (rawPrimary) state.apiBase = rawPrimary;
-        const fbInput = document.getElementById('fallbackApiInput');
-        if (fbInput && cleanUrl(fbInput.value)) {
-          state.fallbackApiBase = cleanUrl(fbInput.value);
-        } else {
-          state.fallbackApiBase = FALLBACK_API_BASE;
-        }
-        state.enableFailover = document.getElementById('failoverCheckbox').checked;
+        state.apiBase = API_BASE;
+        state.fallbackApiBase = API_BASE;
+        state.enableFailover = false;
+        const segProxyInput = document.getElementById('segmentProxyInput');
+        state.segmentProxyUrl = segProxyInput ? segProxyInput.value.trim() : '';
+        preferredSegmentRoute = null;
         state.compactRows = document.getElementById('compactRowsCheckbox').checked;
         document.body.classList.toggle('compact-rows', Boolean(state.compactRows));
         saveState();
         closeModal('settingsModal');
         checkApiHealth();
-        showToast(`API set to ${formatShortHost(state.apiBase)}`, 'success');
+        showToast('Saved terminal settings (locked to h.shy.cx)', 'success');
       });
 
       document.getElementById('pingApiBtn').addEventListener('click', checkApiHealth);
