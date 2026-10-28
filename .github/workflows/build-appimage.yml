@@ -22,11 +22,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Linux AppImage FUSE dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libfuse2t64 || sudo apt-get install -y libfuse2 || true
-
       - name: Install dependencies & build AppImage
         run: |
           npm install
