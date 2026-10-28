@@ -1,0 +1,72 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-apk:
+    name: Build Signed Android APK
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Accept Android SDK Licenses & Install API 34
+        run: |
+          SDKMANAGER=$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager | sort -V | tail -n 1)
+          echo "Using sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Setup Gradle 8.5
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: Sync latest index.html & Generate Signing Keystore
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp index.html android/app/src/main/assets/index.html
+          if [ ! -f android/app/release-key.jks ]; then
+            keytool -genkeypair -v \
+              -keystore android/app/release-key.jks \
+              -alias hifitui \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass hifitui123 -keypass hifitui123 \
+              -dname "CN=apaloran, OU=HiFiTUI, O=apaloran, L=Coimbatore, S=TN, C=IN"
+          fi
+
+      - name: Build Signed Release APK
+        working-directory: android
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Copy & Rename APK
+        run: |
+          mkdir -p dist
+          APK_FILE=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          echo "Found built APK: $APK_FILE"
+          cp "$APK_FILE" dist/hifi-tui-1.0.0-android.apk
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hifi-tui-android-APK
+          path: dist/hifi-tui-1.0.0-android.apk
+          if-no-files-found: error
+
+
