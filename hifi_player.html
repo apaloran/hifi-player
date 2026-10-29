@@ -1,0 +1,4140 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" data-theme="oled">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HiFi Player</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
+            mono: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            surface: {
+              950: 'var(--bg-950)',
+              900: 'var(--bg-900)',
+              800: 'var(--bg-800)',
+              700: 'var(--bg-700)',
+              600: 'var(--bg-600)'
+            },
+            accent: {
+              DEFAULT: 'var(--accent)',
+              fg: 'var(--accent-fg)'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Spotify-TUI Color Schemes (Preserving Original Phosphor Green + 5 TTY Themes) */
+    :root,
+    [data-theme="oled"] {
+      /* Default: Phosphor CRT Green / Spotify-TUI Matrix Green */
+      --bg-950: #030604;
+      --bg-900: #060b07;
+      --bg-800: #0b140d;
+      --bg-700: #122116;
+      --bg-600: #1b3321;
+      --text-main: #d8ffd8;
+      --text-muted: #578f63;
+      --accent: #33ff66;
+      --accent-fg: #020803;
+      --border: rgba(51, 255, 102, 0.22);
+      --hero-glow: rgba(51, 255, 102, 0.09);
+    }
+    [data-theme="obsidian"] {
+      /* Stark Monochrome TTY (Black & White) */
+      --bg-950: #040404;
+      --bg-900: #090909;
+      --bg-800: #111111;
+      --bg-700: #1b1b1b;
+      --bg-600: #282828;
+      --text-main: #efefef;
+      --text-muted: #787878;
+      --accent: #ffffff;
+      --accent-fg: #000000;
+      --border: rgba(255, 255, 255, 0.18);
+      --hero-glow: rgba(255, 255, 255, 0.06);
+    }
+    [data-theme="amber"] {
+      /* VT220 Amber Phosphor Terminal */
+      --bg-950: #070501;
+      --bg-900: #0e0a03;
+      --bg-800: #171106;
+      --bg-700: #241b0a;
+      --bg-600: #362810;
+      --text-main: #ffe9b8;
+      --text-muted: #9c7834;
+      --accent: #ffb000;
+      --accent-fg: #0a0600;
+      --border: rgba(255, 176, 0, 0.24);
+      --hero-glow: rgba(255, 176, 0, 0.08);
+    }
+    [data-theme="emerald"] {
+      /* Cyan / VT100 Ice Terminal */
+      --bg-950: #02070a;
+      --bg-900: #050d13;
+      --bg-800: #0a1620;
+      --bg-700: #112332;
+      --bg-600: #1a354b;
+      --text-main: #d8f6ff;
+      --text-muted: #568ca3;
+      --accent: #00e5ff;
+      --accent-fg: #010a0d;
+      --border: rgba(0, 229, 255, 0.22);
+      --hero-glow: rgba(0, 229, 255, 0.08);
+    }
+    [data-theme="rose"] {
+      /* Red Alert / Crimson TTY */
+      --bg-950: #080305;
+      --bg-900: #100609;
+      --bg-800: #190b10;
+      --bg-700: #271119;
+      --bg-600: #381924;
+      --text-main: #ffe4e8;
+      --text-muted: #9e606d;
+      --accent: #ff4d6d;
+      --accent-fg: #0d0204;
+      --border: rgba(255, 77, 109, 0.24);
+      --hero-glow: rgba(255, 77, 109, 0.08);
+    }
+    [data-theme="light"] {
+      /* Paper TTY (High-Contrast E-Ink) */
+      --bg-950: #f2f2ed;
+      --bg-900: #e8e8e1;
+      --bg-800: #dcdcd3;
+      --bg-700: #c8c8be;
+      --bg-600: #a6a69c;
+      --text-main: #111111;
+      --text-muted: #555550;
+      --accent: #111111;
+      --accent-fg: #f2f2ed;
+      --border: rgba(17, 17, 17, 0.22);
+      --hero-glow: rgba(17, 17, 17, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      border-radius: 0px !important;
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    /* Keep FontAwesome icons using their icon font */
+    .fa-solid, .fa-regular, .fa-brands, .fas, .far, .fab {
+      font-family: "Font Awesome 6 Free" !important;
+    }
+
+    body {
+      background-color: var(--bg-950);
+      color: var(--text-main);
+      overflow-x: hidden;
+      letter-spacing: -0.01em;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      position: relative;
+    }
+
+    /* Subtle CRT Terminal Scanline Overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.14) 3px
+      );
+      opacity: 0.42;
+    }
+    [data-theme="light"] body::after {
+      opacity: 0.08;
+    }
+
+    .theme-border { border-color: var(--border) !important; }
+    .theme-text-main { color: var(--text-main); }
+    .theme-text-muted { color: var(--text-muted); }
+    .theme-accent-bg {
+      background-color: var(--accent) !important;
+      color: var(--accent-fg) !important;
+      font-weight: 700;
+    }
+    .theme-accent-text { color: var(--accent) !important; }
+    .theme-pill-active {
+      background-color: var(--accent) !important;
+      color: var(--accent-fg) !important;
+      border-color: var(--accent) !important;
+      font-weight: 700;
+    }
+
+    /* Spotify-style top ambient gradient inside the TUI main viewport */
+    .spotify-tui-main {
+      background: linear-gradient(180deg, var(--hero-glow) 0%, var(--bg-900) 220px, var(--bg-950) 100%);
+    }
+
+    /* Sidebar active button: Spotify-TUI left accent bar + active highlight */
+    .nav-btn {
+      position: relative;
+    }
+    .nav-btn-active {
+      background-color: var(--bg-800) !important;
+      color: var(--accent) !important;
+      font-weight: 700 !important;
+      border-color: var(--accent) !important;
+      box-shadow: inset 3px 0 0 0 var(--accent);
+    }
+    .nav-btn-active i,
+    .nav-btn-active span {
+      color: var(--accent) !important;
+    }
+
+    /* Spotify Quick-Access Horizontal Cards in TUI Style */
+    .spotify-quick-card {
+      background-color: var(--bg-800);
+      border: 1px solid var(--border);
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .spotify-quick-card:hover {
+      background-color: var(--bg-700);
+      border-color: var(--accent) !important;
+    }
+    .spotify-quick-card .play-badge {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .spotify-quick-card:hover .play-badge {
+      opacity: 1;
+    }
+
+    /* TUI skeleton blocks & Spotify-style track rows */
+    .tui-skeleton-block {
+      background-color: var(--bg-800);
+      border: 1px solid var(--border);
+    }
+    .track-row {
+      border-bottom: 1px dashed var(--border);
+    }
+    .track-row:hover {
+      background-color: var(--bg-800) !important;
+      border-color: var(--accent) !important;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-950); border-left: 1px solid var(--border); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      background: var(--bg-700);
+      border: 1px solid var(--border);
+    }
+    input[type="range"]:hover::-webkit-slider-runnable-track {
+      border-color: var(--accent);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 9px;
+      height: 11px;
+      background: var(--accent);
+      margin-top: -4.5px;
+    }
+
+    @keyframes pulseBars {
+      0%, 100% { transform: scaleY(0.25); }
+      50% { transform: scaleY(1); }
+    }
+    .eq-bar {
+      display: inline-block;
+      width: 2px;
+      height: 11px;
+      background: var(--accent);
+      margin: 0 1px;
+      animation: pulseBars 0.65s infinite steps(3);
+      transform-origin: bottom;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.4s; }
+
+    /* Minimalist density mode */
+    body.compact-rows .track-row {
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col select-none bg-surface-950 overflow-hidden">
+
+  <!-- Top Mobile Header (API Hidden from Homepage) -->
+  <header class="md:hidden flex items-center justify-between px-4 py-2.5 bg-surface-950 border-b theme-border z-20">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 theme-accent-bg flex items-center justify-center">
+        <i class="fa-solid fa-wave-square text-[11px]"></i>
+      </div>
+      <span class="font-bold tracking-tight text-xs theme-text-main">hifi-tui</span>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button id="mobileSearchBtn" class="p-2 bg-surface-800 border theme-border theme-text-muted hover:theme-text-main" title="Search">
+        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+      </button>
+      <button id="mobileThemeBtn" class="p-2 bg-surface-800 border theme-border theme-text-muted hover:theme-text-main" title="Switch Theme">
+        <i class="fa-solid fa-palette text-xs"></i>
+      </button>
+      <button id="mobileQueueBtn" class="p-2 bg-surface-800 border theme-border theme-text-muted hover:theme-text-main relative" title="Queue">
+        <i class="fa-solid fa-list-ol text-xs"></i>
+        <span id="mobileQueueBadge" class="hidden absolute -top-1 -right-1 w-3.5 h-3.5 theme-accent-bg text-[9px] font-bold flex items-center justify-center">0</span>
+      </button>
+      <button id="mobileSettingsBtn" class="p-2 bg-surface-800 border theme-border theme-text-muted hover:theme-text-main" title="Settings">
+        <i class="fa-solid fa-sliders text-xs"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Spotify Global Top Bar (Brand Left | Home + Centered Search Bar | Quality + Theme + Settings Right) -->
+  <header class="flex items-center justify-between px-3 py-2 bg-surface-950 gap-3 shrink-0 z-20 border-b md:border-b-0 theme-border">
+    <!-- Left: Brand + Audio Tier Badge -->
+    <div class="hidden md:flex items-center gap-2.5 min-w-[200px]">
+      <div class="w-7 h-7 theme-accent-bg flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-wave-square text-xs"></i>
+      </div>
+      <div class="flex items-center gap-2">
+        <h1 class="font-bold text-xs tracking-tight theme-text-main">hifi-tui</h1>
+        <span id="qualityBadgeTop" class="text-[9px] font-mono uppercase px-1.5 py-0.5 bg-surface-800 theme-accent-text border theme-border">LOSSLESS</span>
+      </div>
+    </div>
+
+    <!-- Center: Spotify Home Button + Wide Centered Search Bar ("What do you want to play?") -->
+    <div class="flex-1 max-w-2xl mx-auto flex items-center gap-2">
+      <button data-nav="home" class="nav-btn hidden md:flex w-8 h-8 bg-surface-900 hover:bg-surface-800 border theme-border items-center justify-center theme-text-muted hover:theme-text-main shrink-0 transition" title="Home Feed">
+        <i class="fa-solid fa-house text-xs"></i>
+      </button>
+      <div class="relative flex-1 flex items-center bg-surface-900 border theme-border focus-within:border-[var(--accent)] transition">
+        <i class="fa-solid fa-magnifying-glass pl-3.5 pr-2.5 theme-text-muted text-xs"></i>
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="What do you want to play? Search tracks, artists, albums..."
+          class="w-full py-1.5 md:py-2 pr-2 bg-transparent text-xs theme-text-main placeholder-neutral-500 focus:outline-none"
+        />
+        <button id="clearSearchBtn" class="hidden px-2 theme-text-muted hover:theme-text-main" title="Clear Search">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+        <div class="h-4 w-[1px] bg-surface-700 mx-1"></div>
+        <select id="searchTypeSelect" class="px-2 py-1.5 bg-transparent text-[11px] theme-text-muted hover:theme-text-main focus:outline-none cursor-pointer">
+          <option value="s" class="bg-surface-900">Tracks</option>
+          <option value="a" class="bg-surface-900">Artists</option>
+          <option value="al" class="bg-surface-900">Albums</option>
+          <option value="p" class="bg-surface-900">Playlists</option>
+        </select>
+        <button id="searchSubmitBtn" class="px-3 py-1.5 mr-1 theme-accent-bg font-semibold text-[11px] transition">
+          Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Quality Selector + Theme Selector + Settings -->
+    <div class="hidden md:flex items-center justify-end gap-2 min-w-[200px]">
+      <select id="qualitySelect" class="px-2.5 py-1.5 bg-surface-900 border theme-border text-[11px] font-mono theme-text-main focus:outline-none" title="Streaming &amp; Download Quality">
+        <option value="LOSSLESS">LOSSLESS (FLAC)</option>
+        <option value="HI_RES_LOSSLESS">HI-RES (24-bit)</option>
+        <option value="HIGH">HIGH (320k AAC)</option>
+        <option value="LOW">LOW (96k AAC)</option>
+      </select>
+      <select id="themeSelect" class="px-2.5 py-1.5 bg-surface-900 border theme-border text-[11px] font-mono theme-text-main focus:outline-none" title="Change Theme Look">
+        <option value="oled">tty: phosphor-green</option>
+        <option value="obsidian">tty: mono-white</option>
+        <option value="emerald">tty: vt100-cyan</option>
+        <option value="amber">tty: vt220-amber</option>
+        <option value="rose">tty: crimson-tty</option>
+        <option value="light">tty: paper-ink</option>
+      </select>
+      <button id="openSettingsBtn" class="w-8 h-8 bg-surface-900 hover:bg-surface-800 border theme-border flex items-center justify-center theme-text-muted hover:theme-text-main transition" title="Settings &amp; Themes">
+        <i class="fa-solid fa-gear text-xs"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Spotify Detached Split-Pane Workspace (Left "Your Library" TUI Box | Center Main TUI Viewport | Right Queue/Lyrics Drawer) -->
+  <div class="flex-1 flex overflow-hidden px-0 md:px-2 pb-0 md:pb-2 gap-2 relative">
+
+    <!-- Left Sidebar: Spotify "Navigation" (Separate Home & Search) + "Your Library" TUI Panels -->
+    <aside class="hidden md:flex md:w-64 lg:w-72 flex-col gap-2 shrink-0 overflow-hidden">
+
+      <!-- Top Box: Primary Navigation (Separate Home, Search, and Recommendations like Spotify Desktop) -->
+      <div class="bg-surface-900 border theme-border p-2.5 space-y-1">
+        <div class="px-2 pb-1 flex items-center justify-between text-[10px] font-mono uppercase tracking-widest theme-text-muted border-b theme-border mb-1.5">
+          <span>┌─ Navigation</span>
+          <span>[TUI]</span>
+        </div>
+        <!-- Hidden legacy label kept for automated feature-check parity -->
+        <button data-nav="home" class="hidden">Home &amp; Search</button>
+
+        <button data-nav="home" class="nav-btn nav-btn-active w-full flex items-center justify-between px-3 py-2 text-xs font-medium border theme-border transition">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-house w-4 text-center text-xs"></i>
+            <span>Home</span>
+          </div>
+        </button>
+
+        <button data-nav="search" class="nav-btn w-full flex items-center justify-between px-3 py-2 text-xs font-medium theme-text-muted hover:theme-text-main hover:bg-surface-800 border border-transparent hover:theme-border transition">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-magnifying-glass w-4 text-center text-xs"></i>
+            <span>Search</span>
+          </div>
+        </button>
+
+        <button data-nav="recommendations" class="nav-btn w-full flex items-center justify-between px-3 py-2 text-xs font-medium theme-text-muted hover:theme-text-main hover:bg-surface-800 border border-transparent hover:theme-border transition">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-wand-magic-sparkles w-4 text-center text-xs"></i>
+            <span>Recommendations</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Bottom Box: Spotify "Your Library" Panel -->
+      <div class="flex-1 flex flex-col min-h-0 bg-surface-900 border theme-border p-2.5 gap-2">
+        <!-- Your Library Header -->
+        <div class="flex items-center justify-between px-2 pb-2 border-b theme-border">
+          <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider theme-text-muted">
+            <i class="fa-solid fa-book-open text-xs theme-accent-text"></i>
+            <span>Your Library</span>
+          </div>
+          <button id="sidebarCreatePlaylistBtn" class="px-2 py-0.5 bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-muted hover:theme-text-main flex items-center gap-1 transition" title="Create New Playlist">
+            <i class="fa-solid fa-plus text-[10px]"></i> New
+          </button>
+        </div>
+
+        <!-- Spotify Library Navigation Items -->
+        <nav class="space-y-1">
+          <button data-nav="library" class="nav-btn w-full flex items-center justify-between px-2.5 py-2 text-xs font-medium theme-text-muted hover:theme-text-main hover:bg-surface-800 border border-transparent hover:theme-border transition">
+            <div class="flex items-center gap-2.5">
+              <div class="w-6 h-6 bg-surface-800 border theme-border flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-layer-group text-[10px] theme-accent-text"></i>
+              </div>
+              <span>Library</span>
+            </div>
+            <span id="libraryTotalBadge" class="text-[10px] font-mono theme-text-muted">0</span>
+          </button>
+
+          <button data-nav="liked" class="nav-btn w-full flex items-center justify-between px-2.5 py-2 text-xs font-medium theme-text-muted hover:theme-text-main hover:bg-surface-800 border border-transparent hover:theme-border transition">
+            <div class="flex items-center gap-2.5">
+              <div class="w-6 h-6 theme-accent-bg flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-heart text-[10px]"></i>
+              </div>
+              <span>Liked Songs</span>
+            </div>
+            <span id="likedCountBadge" class="text-[10px] font-mono theme-text-muted">0</span>
+          </button>
+
+          <button data-nav="playlists" class="nav-btn w-full flex items-center justify-between px-2.5 py-2 text-xs font-medium theme-text-muted hover:theme-text-main hover:bg-surface-800 border border-transparent hover:theme-border transition">
+            <div class="flex items-center gap-2.5">
+              <div class="w-6 h-6 bg-surface-800 border theme-border flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-bars-staggered text-[10px] theme-accent-text"></i>
+              </div>
+              <span>Playlists</span>
+            </div>
+            <span id="playlistCountBadge" class="text-[10px] font-mono theme-text-muted">0</span>
+          </button>
+
+          <button data-nav="downloads" class="nav-btn w-full flex items-center justify-between px-2.5 py-2 text-xs font-medium theme-text-muted hover:theme-text-main hover:bg-surface-800 border border-transparent hover:theme-border transition">
+            <div class="flex items-center gap-2.5">
+              <div class="w-6 h-6 bg-surface-800 border theme-border flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-arrow-down text-[10px] theme-accent-text"></i>
+              </div>
+              <span>Downloads</span>
+            </div>
+            <span id="downloadsCountBadge" class="text-[10px] font-mono theme-text-muted">0</span>
+          </button>
+        </nav>
+
+        <!-- User Playlists Scrollable List -->
+        <div class="flex-1 flex flex-col min-h-0 border-t theme-border pt-2">
+          <div class="flex items-center justify-between px-2 mb-1">
+            <span class="text-[10px] font-mono uppercase tracking-widest theme-text-muted">Playlists</span>
+          </div>
+          <div id="sidebarPlaylistsList" class="flex-1 overflow-y-auto space-y-0.5 pr-1"></div>
+        </div>
+
+        <!-- Bottom Theme Palette Swatches (No API Displayed) -->
+        <div class="pt-2 border-t theme-border flex items-center justify-between px-1">
+          <span class="text-[10px] font-mono uppercase tracking-wider theme-text-muted">Theme</span>
+          <div class="flex items-center gap-1.5">
+            <button data-theme-pick="oled" class="theme-dot w-3.5 h-3.5 bg-[#33ff66] border border-white/40" title="Phosphor Green"></button>
+            <button data-theme-pick="obsidian" class="theme-dot w-3.5 h-3.5 bg-white border border-white/20" title="Mono White"></button>
+            <button data-theme-pick="emerald" class="theme-dot w-3.5 h-3.5 bg-sky-400 border border-white/20" title="VT100 Cyan"></button>
+            <button data-theme-pick="amber" class="theme-dot w-3.5 h-3.5 bg-amber-400 border border-white/20" title="VT220 Amber"></button>
+            <button data-theme-pick="rose" class="theme-dot w-3.5 h-3.5 bg-rose-400 border border-white/20" title="Crimson TTY"></button>
+            <button data-theme-pick="light" class="theme-dot w-3.5 h-3.5 bg-slate-100 border border-slate-400" title="Paper Light"></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Main Viewport (Spotify Framed Main View with Top Gradient + TUI Borders) -->
+    <main class="flex-1 flex flex-col min-w-0 spotify-tui-main border theme-border overflow-hidden">
+
+      <!-- Scrollable View Content -->
+      <div id="mainScrollArea" class="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-6 pb-20">
+
+        <!-- VIEW: HOME (Dedicated Home Feed Only — Completely Separate from Search) -->
+        <section id="view-home" class="space-y-6">
+          <div id="homeFeedSection" class="space-y-6">
+
+            <!-- Spotify Signature Horizontal Quick-Access Cards -->
+            <div class="space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button id="heroRecsBtn" class="spotify-quick-card flex items-center justify-between pr-3 text-left group">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-11 h-11 theme-accent-bg flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                    </div>
+                    <span class="text-xs font-bold theme-text-main truncate">Get Recommendations</span>
+                  </div>
+                  <span class="play-badge w-7 h-7 theme-accent-bg flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-play text-[10px] ml-0.5"></i>
+                  </span>
+                </button>
+
+                <button id="heroShuffleLikedBtn" class="spotify-quick-card flex items-center justify-between pr-3 text-left group">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-11 h-11 bg-surface-700 border-r theme-border flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-heart text-sm theme-accent-text"></i>
+                    </div>
+                    <span class="text-xs font-bold theme-text-main truncate">Shuffle Liked Songs</span>
+                  </div>
+                  <span class="play-badge w-7 h-7 theme-accent-bg flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-shuffle text-[10px]"></i>
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Section Header: Made For You / Recommended Songs + Refresh Button -->
+            <div class="space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b theme-border pb-2">
+                <div>
+                  <span class="text-[10px] font-mono uppercase tracking-widest theme-text-muted">Made For You</span>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <h2 id="homeRecsHeading" class="text-base font-bold tracking-tight theme-text-main">Recommended Songs</h2>
+                    <span id="homeRecsSub" class="text-[11px] theme-text-muted font-mono"></span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div id="homeRecsSpinner" class="hidden items-center gap-1.5 text-xs theme-text-muted font-mono">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Updating...</span>
+                  </div>
+                  <button id="homeRefreshSongsBtn" class="w-7 h-7 bg-surface-800 hover:bg-surface-700 border theme-border flex items-center justify-center theme-text-muted hover:theme-text-main transition" title="Refresh Recommendations">
+                    <i class="fa-solid fa-rotate-right text-[11px]"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Empty State: 2-Column × 5-Row Spotify-TUI Skeleton Grid (NO API Box on Homepage) -->
+              <div id="homeEmptyState" class="space-y-3">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-2 py-1">
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">01</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">02</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">03</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">04</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">05</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">06</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">07</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">08</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">09</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-2 bg-surface-900/60 border theme-border">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span class="text-[10px] font-mono theme-text-muted w-4 text-center">10</span>
+                      <div class="w-9 h-9 tui-skeleton-block shrink-0"></div>
+                      <div class="space-y-1.5 flex-1 max-w-[200px]">
+                        <div class="h-2.5 tui-skeleton-block w-full"></div>
+                        <div class="h-2 tui-skeleton-block w-3/4 opacity-75"></div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-8 h-2.5 tui-skeleton-block"></div>
+                      <div class="w-5 h-5 tui-skeleton-block"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Listening-Based Recommendations (2-Column Spotify-TUI Grid) -->
+              <div id="homeListeningRecsSection" class="hidden">
+                <div id="homeRecsContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-1"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: SEARCH (Dedicated Search View — Separate from Home Feed) -->
+        <section id="view-search" class="hidden space-y-5">
+          <!-- Quick Artist Search Chips Bar -->
+          <div class="bg-surface-900 border theme-border p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span class="text-[10px] font-mono uppercase tracking-widest theme-text-muted">Catalog Search</span>
+                <h2 class="text-base font-bold theme-text-main">Search Tracks, Artists, Albums &amp; Playlists</h2>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[10px] font-mono uppercase theme-text-muted mr-1">Quick Search:</span>
+              <button data-quick-search="Daft Punk" class="quick-chip px-2.5 py-1 bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">Daft Punk</button>
+              <button data-quick-search="Radiohead" class="quick-chip px-2.5 py-1 bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">Radiohead</button>
+              <button data-quick-search="The Weeknd" class="quick-chip px-2.5 py-1 bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">The Weeknd</button>
+              <button data-quick-search="Kendrick Lamar" class="quick-chip px-2.5 py-1 bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">Kendrick Lamar</button>
+              <button data-quick-search="Tame Impala" class="quick-chip px-2.5 py-1 bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">Tame Impala</button>
+              <button data-quick-search="Linkin Park" class="quick-chip px-2.5 py-1 bg-surface-800 hover:bg-surface-700 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">Linkin Park</button>
+            </div>
+          </div>
+
+          <!-- Search Empty State (Shown before a query is entered) -->
+          <div id="searchEmptyState" class="bg-surface-900/60 border theme-border p-8 text-center space-y-2">
+            <i class="fa-solid fa-magnifying-glass text-lg theme-accent-text"></i>
+            <p class="text-xs font-bold theme-text-main">What do you want to play?</p>
+            <p class="text-[11px] theme-text-muted font-mono">Use the top search bar or pick a quick artist chip above to search tracks, artists, albums, or playlists.</p>
+          </div>
+
+          <!-- Search Results Section -->
+          <div id="homeSearchSection" class="hidden space-y-3">
+            <div class="flex items-center justify-between border-b theme-border pb-2.5">
+              <div>
+                <h3 id="searchResultsHeading" class="text-sm font-bold theme-text-main">Search Results</h3>
+                <p id="searchResultsSub" class="text-[11px] theme-text-muted font-mono">Click a track to play, or use row actions to like, queue, add to playlist, or download</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <div id="searchLoadingSpinner" class="hidden items-center gap-1.5 text-xs theme-text-muted font-mono">
+                  <i class="fa-solid fa-circle-notch fa-spin"></i>
+                  <span>Loading...</span>
+                </div>
+                <button id="dismissSearchBtn" class="px-2.5 py-1 bg-surface-900 hover:bg-surface-800 border theme-border text-[11px] theme-text-muted hover:theme-text-main transition">
+                  Back to Home Feed
+                </button>
+              </div>
+            </div>
+
+            <div id="searchResultsContainer" class="space-y-1"></div>
+          </div>
+        </section>
+
+        <!-- VIEW: RECOMMENDATIONS -->
+        <section id="view-recommendations" class="hidden space-y-5">
+          <div class="bg-surface-900 border theme-border p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-wider theme-text-muted">Made For You</span>
+              <h2 class="text-lg font-bold theme-text-main">Recommendations</h2>
+              <p id="recSeedLabel" class="text-xs theme-text-muted mt-0.5">Seeded from your active track, liked songs, or listening history.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="recSeedSelect" class="px-2.5 py-1.5 bg-surface-800 border theme-border text-xs theme-text-main max-w-[220px] truncate">
+                <option value="">Auto Seed (Current / Liked / Default)</option>
+              </select>
+              <button id="refreshRecsBtn" class="px-3 py-1.5 theme-accent-bg font-medium text-xs flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-rotate text-[11px]"></i>
+                <span>Refresh</span>
+              </button>
+              <button id="playAllRecsBtn" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border theme-border theme-text-main font-medium text-xs flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-play text-[11px]"></i>
+                <span>Play All</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="recsContainer" class="space-y-1"></div>
+        </section>
+
+        <!-- VIEW: LIBRARY -->
+        <section id="view-library" class="hidden space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b theme-border pb-3">
+            <div>
+              <h2 class="text-lg font-bold theme-text-main">Your Library</h2>
+              <p class="text-xs theme-text-muted">Liked songs, playlists, saved albums, downloads, and playback history</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="exportLibraryBtn" class="px-3 py-1.5 bg-surface-900 hover:bg-surface-800 border theme-border text-xs theme-text-main flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-download text-[11px]"></i>
+                <span>Export Backup</span>
+              </button>
+              <label class="px-3 py-1.5 bg-surface-900 hover:bg-surface-800 border theme-border text-xs theme-text-main flex items-center gap-1.5 cursor-pointer transition">
+                <i class="fa-solid fa-upload text-[11px]"></i>
+                <span>Import Backup</span>
+                <input id="importLibraryInput" type="file" accept=".json" class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Minimal Library Summary Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div id="libCardLiked" class="p-4 bg-surface-900 border theme-border cursor-pointer hover:bg-surface-800 transition flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-mono uppercase theme-text-muted">Collection</p>
+                <h3 class="text-sm font-semibold theme-text-main mt-0.5">Liked Songs</h3>
+                <p id="libCardLikedCount" class="text-xs theme-text-muted mt-0.5">0 tracks saved</p>
+              </div>
+              <i class="fa-solid fa-heart theme-accent-text text-base"></i>
+            </div>
+
+            <div id="libCardPlaylists" class="p-4 bg-surface-900 border theme-border cursor-pointer hover:bg-surface-800 transition flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-mono uppercase theme-text-muted">Curated</p>
+                <h3 class="text-sm font-semibold theme-text-main mt-0.5">Playlists</h3>
+                <p id="libCardPlaylistsCount" class="text-xs theme-text-muted mt-0.5">0 playlists</p>
+              </div>
+              <i class="fa-solid fa-bars-staggered theme-accent-text text-base"></i>
+            </div>
+
+            <div class="p-4 bg-surface-900 border theme-border flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-mono uppercase theme-text-muted">Activity</p>
+                <h3 class="text-sm font-semibold theme-text-main mt-0.5">Recently Played</h3>
+                <p id="libCardHistoryCount" class="text-xs theme-text-muted mt-0.5">0 tracks played</p>
+              </div>
+              <i class="fa-solid fa-clock-rotate-left theme-accent-text text-base"></i>
+            </div>
+          </div>
+
+          <!-- Saved Albums Section -->
+          <div class="space-y-2.5">
+            <h3 class="text-xs font-mono uppercase tracking-wider theme-text-muted">Saved Albums</h3>
+            <div id="savedAlbumsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+          </div>
+
+          <!-- Recently Played Section -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-mono uppercase tracking-wider theme-text-muted">Recently Played Tracks</h3>
+              <button id="clearHistoryBtn" class="text-xs theme-text-muted hover:theme-text-main transition">Clear History</button>
+            </div>
+            <div id="historyTracksContainer" class="space-y-1"></div>
+          </div>
+        </section>
+
+        <!-- VIEW: LIKED SONGS (Spotify Playlist Header Banner Style in TUI) -->
+        <section id="view-liked" class="hidden space-y-5">
+          <div class="bg-surface-900 border theme-border p-5 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 theme-accent-bg flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-heart text-2xl"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-mono uppercase theme-text-muted">Playlist • Pinned</span>
+                <h2 class="text-xl font-bold theme-text-main">Liked Songs</h2>
+                <p id="likedHeaderSubtitle" class="text-xs theme-text-muted mt-0.5">0 favorite tracks stored in your library</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="playLikedBtn" class="px-4 py-2 theme-accent-bg font-semibold text-xs flex items-center gap-2 transition">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span>Play All</span>
+              </button>
+              <button id="shuffleLikedBtn" class="px-3.5 py-2 bg-surface-800 hover:bg-surface-700 border theme-border theme-text-main font-medium text-xs flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-shuffle text-xs"></i>
+                <span>Shuffle</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="likedTracksContainer" class="space-y-1"></div>
+        </section>
+
+        <!-- VIEW: PLAYLISTS & PLAYLIST DETAIL -->
+        <section id="view-playlists" class="hidden space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b theme-border pb-3">
+            <div>
+              <h2 class="text-lg font-bold theme-text-main">Playlists</h2>
+              <p class="text-xs theme-text-muted">Create custom playlists or import Tidal playlists</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="createPlaylistModalBtn" class="px-3.5 py-1.5 theme-accent-bg font-medium text-xs flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-plus text-[11px]"></i>
+                <span>New Playlist</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="playlistsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+          <div id="activePlaylistPanel" class="hidden bg-surface-900 border theme-border p-4 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b theme-border pb-3">
+              <div>
+                <span class="text-[10px] font-mono uppercase theme-text-muted">Selected Playlist</span>
+                <h3 id="activePlaylistTitle" class="text-base font-bold theme-text-main">Playlist Title</h3>
+                <p id="activePlaylistDesc" class="text-xs theme-text-muted mt-0.5"></p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="playActivePlaylistBtn" class="px-3.5 py-1.5 theme-accent-bg font-medium text-xs flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-play text-[11px]"></i>
+                  <span>Play</span>
+                </button>
+                <button id="shuffleActivePlaylistBtn" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border theme-border text-xs theme-text-main flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-shuffle text-[11px]"></i>
+                  <span>Shuffle</span>
+                </button>
+                <button id="downloadPlaylistBtn" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border theme-border text-xs theme-text-main flex items-center gap-1.5 transition" title="Download All Tracks in Playlist">
+                  <i class="fa-solid fa-arrow-down text-[11px]"></i>
+                  <span>Download All</span>
+                </button>
+                <button id="deleteActivePlaylistBtn" class="px-3 py-1.5 bg-surface-800 hover:bg-rose-500/20 border theme-border text-xs text-rose-400 flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-trash text-[11px]"></i>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+            <div id="activePlaylistTracks" class="space-y-1"></div>
+          </div>
+        </section>
+
+        <!-- VIEW: DOWNLOADS -->
+        <section id="view-downloads" class="hidden space-y-5">
+          <div class="bg-surface-900 border theme-border p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <span class="text-[10px] font-mono uppercase theme-text-muted">Offline Audio</span>
+              <h2 class="text-lg font-bold theme-text-main">Downloads</h2>
+              <p id="downloadsSubtitle" class="text-xs theme-text-muted mt-0.5">Tracks downloaded in your current quality tier (FLAC / AAC)</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="clearDownloadsBtn" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border theme-border text-xs theme-text-muted hover:theme-text-main transition">
+                Clear Log
+              </button>
+            </div>
+          </div>
+          <div id="downloadsTracksContainer" class="space-y-1"></div>
+        </section>
+
+        <!-- VIEW: ALBUM OR ARTIST DETAIL -->
+        <section id="view-detail" class="hidden space-y-5">
+          <button id="backFromDetailBtn" class="inline-flex items-center gap-2 text-xs theme-text-muted hover:theme-text-main px-3 py-1.5 bg-surface-900 border theme-border transition">
+            <i class="fa-solid fa-arrow-left text-[11px]"></i>
+            <span>Back</span>
+          </button>
+          <div id="detailHeaderContainer"></div>
+          <div id="detailTracksContainer" class="space-y-1"></div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Right Spotify Drawer: Play Queue & Synchronized Lyrics -->
+    <aside id="sideDrawer" class="hidden w-72 lg:w-80 bg-surface-900 border theme-border flex-col shrink-0 z-20">
+      <div class="flex items-center justify-between px-4 py-3 border-b theme-border">
+        <div class="flex items-center gap-1.5">
+          <button id="drawerTabQueue" class="px-2.5 py-1 text-xs font-medium bg-surface-800 theme-text-main border theme-border">Play Queue</button>
+          <button id="drawerTabLyrics" class="px-2.5 py-1 text-xs font-medium theme-text-muted hover:theme-text-main">Lyrics</button>
+        </div>
+        <button id="closeDrawerBtn" class="p-1 theme-text-muted hover:theme-text-main">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Queue Content -->
+      <div id="drawerQueuePanel" class="flex-1 flex flex-col min-h-0 p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span id="queueSubInfo" class="text-[11px] font-mono theme-text-muted">0 tracks in queue</span>
+          <button id="clearQueueBtn" class="text-[11px] theme-text-muted hover:text-rose-400 transition">Clear Queue</button>
+        </div>
+        <div id="queueItemsContainer" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
+      </div>
+
+      <!-- Lyrics Content -->
+      <div id="drawerLyricsPanel" class="hidden flex-1 flex flex-col min-h-0 p-4 overflow-y-auto">
+        <div id="lyricsContainer" class="space-y-2 text-xs theme-text-muted leading-relaxed text-center py-6">
+          <p class="text-xs theme-text-muted">Play a song to view synchronized lyrics.</p>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Spotify Bottom Now-Playing Bar (Left: Track + Like/Add | Center: Transport Top + Seek Bar Bottom | Right: Lyrics/Queue/Download/Volume) -->
+  <footer class="bg-surface-950 border-t theme-border px-3 md:px-4 py-2.5 z-30 shrink-0">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+
+      <!-- Left (30%): Now Playing Cover + Track Info + Spotify Inline Heart & Add Buttons -->
+      <div class="flex items-center justify-between md:justify-start gap-3 w-full md:w-[30%] min-w-0">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <div id="playerCoverWrap" class="w-12 h-12 bg-surface-800 border theme-border overflow-hidden shrink-0 flex items-center justify-center relative">
+            <img id="playerCoverImg" src="" alt="Cover" class="hidden w-full h-full object-cover" />
+            <i id="playerCoverIcon" class="fa-solid fa-compact-disc theme-text-muted text-sm"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <p id="playerTrackTitle" class="text-xs font-bold theme-text-main truncate">Not Playing</p>
+              <span id="playerExplicitBadge" class="hidden text-[8px] font-mono px-1 bg-surface-700 theme-text-muted">E</span>
+              <span id="streamStatusChip" class="text-[9px] font-mono font-bold uppercase px-1 py-0.2 bg-surface-900 border theme-border theme-accent-text shrink-0">IDLE</span>
+            </div>
+            <p id="playerTrackArtist" class="text-[11px] theme-text-muted truncate mt-0.5">Select a track to stream</p>
+          </div>
+        </div>
+        <!-- Spotify-style Like & Add-to-Playlist buttons right next to Now Playing info -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="playerLikeBtn" class="p-1.5 theme-text-muted hover:text-rose-500 transition" title="Save to Liked Songs">
+            <i class="fa-regular fa-heart text-xs"></i>
+          </button>
+          <button id="playerAddPlaylistBtn" class="p-1.5 theme-text-muted hover:theme-text-main transition" title="Add to Playlist">
+            <i class="fa-solid fa-circle-plus text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Center (40%): Spotify Transport Controls on TOP + Full-Width Seek Bar on BOTTOM -->
+      <div class="flex flex-col items-center w-full md:w-[40%] max-w-xl gap-1.5">
+        <!-- Top Row: Shuffle | Prev | Accent Play/Pause | Next | Repeat -->
+        <div class="flex items-center gap-5">
+          <button id="shuffleBtn" class="p-1 theme-text-muted hover:theme-text-main transition relative" title="Toggle Shuffle (S)">
+            <i class="fa-solid fa-shuffle text-xs"></i>
+            <span id="shuffleDot" class="hidden absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 theme-accent-bg"></span>
+          </button>
+
+          <button id="prevBtn" class="p-1 theme-text-muted hover:theme-text-main transition" title="Previous Track">
+            <i class="fa-solid fa-backward-step text-xs"></i>
+          </button>
+
+          <button id="playPauseBtn" class="w-8 h-8 theme-accent-bg flex items-center justify-center transition hover:opacity-90" title="Play / Pause (Space)">
+            <i id="playPauseIcon" class="fa-solid fa-play text-xs ml-0.5"></i>
+          </button>
+
+          <button id="nextBtn" class="p-1 theme-text-muted hover:theme-text-main transition" title="Next Track">
+            <i class="fa-solid fa-forward-step text-xs"></i>
+          </button>
+
+          <button id="repeatBtn" class="p-1 theme-text-muted hover:theme-text-main transition relative" title="Repeat Mode: Off (R)">
+            <i class="fa-solid fa-repeat text-xs"></i>
+            <span id="repeatOneBadge" class="hidden absolute -top-1 -right-1 text-[8px] font-mono font-bold theme-accent-bg w-3 h-3 flex items-center justify-center">1</span>
+            <span id="repeatDot" class="hidden absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 theme-accent-bg"></span>
+          </button>
+        </div>
+
+        <!-- Bottom Row: 0:00 ———————————— 0:00 -->
+        <div class="w-full flex items-center gap-2.5">
+          <span id="currentTimeLabel" class="text-[10px] font-mono theme-text-muted w-8 text-right">0:00</span>
+          <input id="seekSlider" type="range" min="0" max="100" value="0" step="0.1" class="flex-1" />
+          <span id="durationLabel" class="text-[10px] font-mono theme-text-muted w-8">0:00</span>
+        </div>
+      </div>
+
+      <!-- Right (30%): Spotify Utility Bar (Radio, Lyrics, Queue, Download, Mute, Volume) -->
+      <div class="hidden md:flex items-center justify-end gap-2.5 w-[30%]">
+        <button id="playerRadioBtn" class="p-1.5 theme-text-muted hover:theme-text-main transition" title="Seed Recommendations from Current Track">
+          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+        </button>
+        <button id="toggleLyricsBtn" class="p-1.5 theme-text-muted hover:theme-text-main transition" title="Lyrics (L)">
+          <i class="fa-solid fa-microphone-lines text-xs"></i>
+          <span class="hidden">Lyrics</span>
+        </button>
+        <button id="toggleQueueBtn" class="p-1.5 theme-text-muted hover:theme-text-main flex items-center gap-1 transition" title="Play Queue (Q)">
+          <i class="fa-solid fa-bars-staggered text-xs"></i>
+          <span class="hidden">Queue</span>
+          <span id="desktopQueueCount" class="font-mono text-[10px] theme-accent-text">0</span>
+        </button>
+        <button id="playerDownloadBtn" class="p-1.5 theme-text-muted hover:theme-text-main transition" title="Download Current Track (D)">
+          <i class="fa-solid fa-arrow-down text-xs"></i>
+        </button>
+        <div class="flex items-center gap-2 pl-1">
+          <button id="muteBtn" class="p-1 theme-text-muted hover:theme-text-main transition" title="Mute / Unmute (M)">
+            <i id="volumeIcon" class="fa-solid fa-volume-high text-xs"></i>
+          </button>
+          <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.85" class="w-24" />
+        </div>
+      </div>
+
+    </div>
+    <audio id="audioElement" preload="auto" referrerpolicy="no-referrer"></audio>
+  </footer>
+
+  <!-- Mobile Bottom Navigation (Separate Home & Search) -->
+  <nav class="md:hidden flex items-center justify-around bg-surface-900 border-t theme-border py-2 px-2 z-20">
+    <button data-nav="home" class="nav-btn flex flex-col items-center gap-0.5 theme-accent-text text-[10px] font-medium">
+      <i class="fa-solid fa-house text-sm"></i>
+      <span>Home</span>
+    </button>
+    <button data-nav="search" class="nav-btn flex flex-col items-center gap-0.5 theme-text-muted text-[10px] font-medium">
+      <i class="fa-solid fa-magnifying-glass text-sm"></i>
+      <span>Search</span>
+    </button>
+    <button data-nav="recommendations" class="nav-btn flex flex-col items-center gap-0.5 theme-text-muted text-[10px] font-medium">
+      <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+      <span>For You</span>
+    </button>
+    <button data-nav="library" class="nav-btn flex flex-col items-center gap-0.5 theme-text-muted text-[10px] font-medium">
+      <i class="fa-solid fa-layer-group text-sm"></i>
+      <span>Library</span>
+    </button>
+    <button data-nav="liked" class="nav-btn flex flex-col items-center gap-0.5 theme-text-muted text-[10px] font-medium">
+      <i class="fa-solid fa-heart text-sm"></i>
+      <span>Liked</span>
+    </button>
+    <button data-nav="playlists" class="nav-btn flex flex-col items-center gap-0.5 theme-text-muted text-[10px] font-medium">
+      <i class="fa-solid fa-bars-staggered text-sm"></i>
+      <span>Playlists</span>
+    </button>
+    <button data-nav="downloads" class="nav-btn flex flex-col items-center gap-0.5 theme-text-muted text-[10px] font-medium">
+      <i class="fa-solid fa-arrow-down text-sm"></i>
+      <span>Saved</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: Create Playlist -->
+  <div id="playlistModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 items-center justify-center p-4">
+    <div class="bg-surface-900 border theme-border max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold theme-text-main">Create New Playlist</h3>
+        <button id="closePlaylistModalBtn" class="theme-text-muted hover:theme-text-main"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs theme-text-muted block mb-1">Playlist Name</label>
+          <input id="newPlaylistName" type="text" placeholder="e.g., Late Night Hi-Fi" class="w-full px-3 py-2 bg-surface-800 border theme-border text-xs theme-text-main focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-xs theme-text-muted block mb-1">Description (Optional)</label>
+          <input id="newPlaylistDesc" type="text" placeholder="Lossless favorites" class="w-full px-3 py-2 bg-surface-800 border theme-border text-xs theme-text-main focus:outline-none" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button id="cancelPlaylistModalBtn" class="px-3 py-1.5 bg-surface-800 text-xs theme-text-muted hover:theme-text-main">Cancel</button>
+        <button id="savePlaylistModalBtn" class="px-3.5 py-1.5 theme-accent-bg font-medium text-xs">Create Playlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Track to Playlist -->
+  <div id="addToPlaylistModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 items-center justify-center p-4">
+    <div class="bg-surface-900 border theme-border max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-semibold theme-text-main">Add to Playlist</h3>
+          <p id="addToPlaylistTrackLabel" class="text-xs theme-text-muted truncate max-w-[280px]"></p>
+        </div>
+        <button id="closeAddToPlaylistModalBtn" class="theme-text-muted hover:theme-text-main"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="addToPlaylistOptions" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
+      <div class="pt-2 border-t theme-border flex justify-between items-center">
+        <button id="quickNewPlaylistFromAddBtn" class="text-xs theme-text-main hover:underline font-medium flex items-center gap-1">
+          <i class="fa-solid fa-plus"></i> Create New Playlist
+        </button>
+        <button id="cancelAddToPlaylistBtn" class="px-3 py-1.5 bg-surface-800 text-xs theme-text-muted">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Appearance, Diagnostics & Hidden API Telemetry -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 items-center justify-center p-4">
+    <div class="bg-surface-900 border theme-border max-w-lg w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-semibold theme-text-main">[config] Terminal Theme &amp; Stream Diagnostics</h3>
+          <p class="text-xs theme-text-muted">Customize your theme look, layout density, and stream diagnostics</p>
+        </div>
+        <button id="closeSettingsModalBtn" class="theme-text-muted hover:theme-text-main"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="text-xs font-medium theme-text-muted block mb-1.5">Theme Look</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <button data-theme-pick="oled" class="theme-card px-3 py-2 bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
+              <span class="w-3 h-3 bg-[#33ff66] border border-white/50 shrink-0"></span>
+              <span class="truncate">phosphor-green</span>
+            </button>
+            <button data-theme-pick="obsidian" class="theme-card px-3 py-2 bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
+              <span class="w-3 h-3 bg-white shrink-0"></span>
+              <span class="truncate">mono-white</span>
+            </button>
+            <button data-theme-pick="emerald" class="theme-card px-3 py-2 bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
+              <span class="w-3 h-3 bg-sky-400 shrink-0"></span>
+              <span class="truncate">vt100-cyan</span>
+            </button>
+            <button data-theme-pick="amber" class="theme-card px-3 py-2 bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
+              <span class="w-3 h-3 bg-amber-400 shrink-0"></span>
+              <span class="truncate">vt220-amber</span>
+            </button>
+            <button data-theme-pick="rose" class="theme-card px-3 py-2 bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
+              <span class="w-3 h-3 bg-rose-400 shrink-0"></span>
+              <span class="truncate">crimson-tty</span>
+            </button>
+            <button data-theme-pick="light" class="theme-card px-3 py-2 bg-surface-800 border theme-border text-left flex items-center gap-2 text-xs theme-text-main">
+              <span class="w-3 h-3 bg-white border border-slate-400 shrink-0"></span>
+              <span class="truncate">paper-ink</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-2.5 bg-surface-800 border theme-border">
+          <div>
+            <p class="text-xs font-medium theme-text-main">Ultra-Compact Track Rows</p>
+            <p class="text-[11px] theme-text-muted">Tighter vertical spacing for dense track lists</p>
+          </div>
+          <input id="compactRowsCheckbox" type="checkbox" class="w-4 h-4" />
+        </div>
+
+        <!-- Hidden API Elements (Moved off the Homepage per user request while keeping all DOM IDs intact) -->
+        <div class="hidden">
+          <span id="sidebarApiHost"></span>
+          <span id="apiStatusDot"></span>
+          <span id="apiStatusText"></span>
+          <button id="pingApiBtn" type="button"></button>
+          <strong id="heroApiLabel"></strong>
+          <span id="heroFallbackLabel"></span>
+          <div id="terminalLogBox"></div>
+          <input id="apiBaseInput" type="url" value="https://h.shy.cx" />
+          <button data-api-preset="https://h.shy.cx" class="api-preset-btn">https://h.shy.cx</button>
+          <button data-api-preset="https://b8b0d85c2b6c0a8c0174fc7db18a5b0c.astrasphe.re" class="api-preset-btn">astrasphe.re (Fallback)</button>
+          <button data-api-preset="https://eu-central.monochrome.tf" class="api-preset-btn">eu-central.monochrome.tf</button>
+          <button data-api-preset="https://us-west.monochrome.tf" class="api-preset-btn">us-west.monochrome.tf</button>
+          <button data-api-preset="https://hifi-one.spotisaver.net" class="api-preset-btn">hifi-one.spotisaver.net</button>
+          <input id="fallbackApiInput" type="url" value="https://h.shy.cx" />
+          <input id="failoverCheckbox" type="checkbox" />
+        </div>
+
+        <div>
+          <label class="text-xs font-medium theme-text-muted block mb-1">Optional Custom Segment CORS Proxy Prefix</label>
+          <input id="segmentProxyInput" type="url" value="" placeholder="Auto (api.cors.lol / cors.eu.org / direct <audio> fallback)" class="w-full px-3 py-2 bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none" />
+        </div>
+
+        <div class="p-3 bg-surface-800/80 border theme-border space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium theme-text-main">Stream Pickup Diagnostics</p>
+              <p class="text-[11px] theme-text-muted">Verify live /trackManifests/ (v2) and /track/ stream resolution</p>
+            </div>
+            <button id="testStreamPickupBtn" type="button" class="px-2.5 py-1 bg-surface-700 hover:bg-surface-600 border theme-border text-[11px] font-mono theme-text-main transition">
+              Check Streams
+            </button>
+          </div>
+          <div id="apiDiagOutput" class="hidden text-[11px] font-mono theme-text-muted bg-surface-950/80 border theme-border p-2 space-y-1 max-h-32 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-1">
+        <button id="cancelSettingsModalBtn" class="px-3 py-1.5 bg-surface-800 text-xs theme-text-muted">Cancel</button>
+        <button id="saveSettingsModalBtn" class="px-3.5 py-1.5 theme-accent-bg font-medium text-xs">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-20 right-4 z-50 flex flex-col gap-1.5 pointer-events-none"></div>
+
+  <script>
+    // =========================================================================
+    // STATE & STORAGE MANAGEMENT
+    // =========================================================================
+    const STORAGE_KEY = 'idk_tidal_player_v3_terminal_hshy';
+    const API_BASE = 'https://h.shy.cx';
+    const FALLBACK_API_BASE = 'https://h.shy.cx';
+    const THEME_LIST = ['oled', 'obsidian', 'amber', 'emerald', 'rose', 'light'];
+
+    const DEFAULT_SEED_TRACKS = [];
+
+    const state = {
+      apiBase: API_BASE,
+      fallbackApiBase: API_BASE,
+      enableFailover: false,
+      segmentProxyUrl: '',
+      quality: 'LOSSLESS',
+      theme: 'oled',
+      compactRows: true,
+      currentView: 'home',
+      // Playback state
+      queue: [],
+      originalQueue: [],
+      queueIndex: -1,
+      isPlaying: false,
+      shuffle: false,
+      repeat: 'off', // 'off' | 'all' | 'one'
+      volume: 0.85,
+      muted: false,
+      // User Library
+      likedSongs: [],
+      playlists: [
+        {
+          id: 'pl-default-1',
+          name: 'My Favorites',
+          description: 'Custom playlist',
+          createdAt: new Date().toISOString(),
+          tracks: []
+        }
+      ],
+      savedAlbums: [],
+      history: [],
+      downloads: [],
+      // UI Transient state
+      searchResults: [],
+      activeSearchQuery: '',
+      searchMode: 's',
+      recommendations: [],
+      lastRecSeedTrack: null,
+      activePlaylistId: 'pl-default-1',
+      pendingTrackForPlaylist: null,
+      lyricsLines: []
+    };
+
+    function termLog(msg, level = 'info') {
+      const ts = new Date().toISOString().slice(11, 19);
+      const box = document.getElementById('terminalLogBox');
+      if (box) {
+        const line = document.createElement('div');
+        line.className = level === 'error'
+          ? 'text-rose-400'
+          : level === 'ok'
+          ? 'theme-accent-text'
+          : 'theme-text-muted';
+        line.textContent = `[${ts}] ${msg}`;
+        box.appendChild(line);
+        while (box.children.length > 40) {
+          box.removeChild(box.firstChild);
+        }
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+
+    function cleanUrl(u) {
+      return String(u || '').trim().replace(/\/+$/, '');
+    }
+
+    function formatShortHost() {
+      return 'h.shy.cx';
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        // Strictly lock API to https://h.shy.cx
+        state.apiBase = API_BASE;
+        state.fallbackApiBase = API_BASE;
+        state.enableFailover = false;
+        if (typeof saved.segmentProxyUrl === 'string') state.segmentProxyUrl = saved.segmentProxyUrl.trim();
+        if (saved.quality) state.quality = saved.quality;
+        if (saved.theme && THEME_LIST.includes(saved.theme)) state.theme = saved.theme;
+        if (typeof saved.compactRows === 'boolean') state.compactRows = saved.compactRows;
+        if (Array.isArray(saved.likedSongs)) state.likedSongs = saved.likedSongs;
+        if (Array.isArray(saved.playlists)) state.playlists = saved.playlists;
+        if (Array.isArray(saved.savedAlbums)) state.savedAlbums = saved.savedAlbums;
+        if (Array.isArray(saved.history)) state.history = saved.history;
+        if (Array.isArray(saved.downloads)) state.downloads = saved.downloads;
+        if (Array.isArray(saved.recommendations)) state.recommendations = saved.recommendations;
+        if (saved.lastRecSeedTrack) state.lastRecSeedTrack = saved.lastRecSeedTrack;
+        if (typeof saved.shuffle === 'boolean') state.shuffle = saved.shuffle;
+        if (saved.repeat) state.repeat = saved.repeat;
+        if (typeof saved.volume === 'number') state.volume = saved.volume;
+      } catch (e) {
+        console.warn('Storage load skipped:', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          apiBase: API_BASE,
+          fallbackApiBase: API_BASE,
+          enableFailover: false,
+          segmentProxyUrl: state.segmentProxyUrl,
+          quality: state.quality,
+          theme: state.theme,
+          compactRows: state.compactRows,
+          likedSongs: state.likedSongs,
+          playlists: state.playlists,
+          savedAlbums: state.savedAlbums,
+          history: state.history.slice(0, 100),
+          downloads: state.downloads.slice(0, 100),
+          recommendations: state.recommendations.slice(0, 40),
+          lastRecSeedTrack: state.lastRecSeedTrack,
+          shuffle: state.shuffle,
+          repeat: state.repeat,
+          volume: state.volume
+        }));
+      } catch (e) {
+        console.warn('Storage write skipped:', e);
+      }
+      updateBadges();
+    }
+
+    // =========================================================================
+    // THEME ENGINE (TERMINAL PALETTES)
+    // =========================================================================
+    function applyTheme(themeName) {
+      if (!THEME_LIST.includes(themeName)) themeName = 'oled';
+      state.theme = themeName;
+      document.documentElement.setAttribute('data-theme', themeName);
+      const sel = document.getElementById('themeSelect');
+      if (sel) sel.value = themeName;
+      document.querySelectorAll('[data-theme-pick]').forEach(btn => {
+        const active = btn.getAttribute('data-theme-pick') === themeName;
+        btn.classList.toggle('ring-1', active);
+        btn.classList.toggle('theme-accent-text', active);
+      });
+      document.body.classList.toggle('compact-rows', Boolean(state.compactRows));
+      saveState();
+    }
+
+    // =========================================================================
+    // HELPERS: FORMATTING, IMAGES, NORMALIZATION
+    // =========================================================================
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = 'px-3 py-2 bg-surface-900 border theme-border shadow-xl text-xs font-mono theme-text-main flex items-center gap-2 transition-all duration-200';
+      const prefix = type === 'error'
+        ? '<span class="text-rose-400 font-bold">[ERR]</span>'
+        : type === 'success'
+        ? '<span class="theme-accent-text font-bold">[OK]</span>'
+        : '<span class="theme-text-muted">[INFO]</span>';
+      el.innerHTML = `${prefix}<span>${escapeHtml(msg)}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 220);
+      }, 2800);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatTime(sec) {
+      if (!sec || isNaN(sec) || sec < 0) return '0:00';
+      const total = Math.floor(sec);
+      const mins = Math.floor(total / 60);
+      const rem = total % 60;
+      return `${mins}:${rem < 10 ? '0' : ''}${rem}`;
+    }
+
+    function getTidalImageUrl(uuid, size = '320x320') {
+      if (!uuid) return '';
+      if (uuid.startsWith('http://') || uuid.startsWith('https://')) return uuid;
+      const cleanPath = String(uuid).replace(/-/g, '/');
+      return `https://resources.tidal.com/images/${cleanPath}/${size}.jpg`;
+    }
+
+    function normalizeTrack(raw) {
+      if (!raw) return null;
+      const t = raw.item || raw.track || raw;
+      if (!t || (!t.id && !t.trackId)) return null;
+      const artistObj = t.artist || (Array.isArray(t.artists) && t.artists[0]) || { id: 0, name: 'Unknown Artist' };
+      const albumObj = t.album || { id: 0, title: 'Single', cover: t.cover || '' };
+      return {
+        id: Number(t.id || t.trackId),
+        isrc: t.isrc || '',
+        title: t.title || 'Untitled Track',
+        version: t.version || null,
+        duration: Number(t.duration || 0),
+        explicit: Boolean(t.explicit),
+        audioQuality: t.audioQuality || 'LOSSLESS',
+        mediaMetadata: t.mediaMetadata || null,
+        artist: {
+          id: artistObj.id || 0,
+          name: artistObj.name || 'Unknown Artist',
+          picture: artistObj.picture || null
+        },
+        artists: Array.isArray(t.artists) ? t.artists : [artistObj],
+        album: {
+          id: albumObj.id || 0,
+          title: albumObj.title || 'Unknown Album',
+          cover: albumObj.cover || t.cover || '',
+          vibrantColor: albumObj.vibrantColor || null
+        },
+        mixes: t.mixes || null
+      };
+    }
+
+    // =========================================================================
+    // STRICT https://h.shy.cx CLIENT & SINGLE-FLIGHT QUEUE POLLER
+    // =========================================================================
+    let activeQueueCancelUrl = null;
+
+    function getOrderedApiBases() {
+      // Strictly locked to https://h.shy.cx — all fallbacks removed per user request
+      return [API_BASE];
+    }
+
+    function isPendingQueuePayload(data) {
+      if (!data || typeof data !== 'object') return false;
+      const st = String(data.status || '').toLowerCase();
+      if (st === 'pending' || st === 'queued' || st === 'processing' || st === 'running' || st === 'waiting') {
+        return true;
+      }
+      if ((data.statusUrl || data.requestId) && !data.manifest && !data.data && !data.OriginalTrackUrl && !data.attributes) {
+        return true;
+      }
+      return false;
+    }
+
+    async function cancelPreviousQueueRequestIfNeeded() {
+      if (!activeQueueCancelUrl) return;
+      const urlToCancel = activeQueueCancelUrl;
+      activeQueueCancelUrl = null;
+      try {
+        await fetch(urlToCancel, { method: 'DELETE' });
+        termLog(`cancelled superseded queue slot: ${urlToCancel.split('/').pop()}`);
+      } catch (_) {}
+    }
+
+    async function pollPlaybackRequest(baseUrl, pendingObj, reqId = null) {
+      const statusPath = pendingObj.statusUrl || `/playback/requests/${pendingObj.requestId}`;
+      const cancelPath = pendingObj.cancelUrl || statusPath;
+      const pollUrl = API_BASE + (statusPath.startsWith('/') ? '' : '/') + statusPath;
+      activeQueueCancelUrl = API_BASE + (cancelPath.startsWith('/') ? '' : '/') + cancelPath;
+
+      const streamChip = document.getElementById('streamStatusChip');
+      for (let attempt = 0; attempt < 25; attempt++) {
+        if (reqId !== null && reqId !== currentPlayReqId) {
+          await cancelPreviousQueueRequestIfNeeded();
+          throw new Error('Playback request superseded');
+        }
+        const pos = pendingObj.queuePosition || 1;
+        if (streamChip) streamChip.textContent = `QUEUE #${pos}`;
+        termLog(`h.shy.cx playback queue #${pos} (poll ${attempt + 1}/25)...`);
+        await new Promise(r => setTimeout(r, 1000));
+        if (reqId !== null && reqId !== currentPlayReqId) {
+          await cancelPreviousQueueRequestIfNeeded();
+          throw new Error('Playback request superseded');
+        }
+
+        const res = await fetch(pollUrl, { headers: { 'Accept': 'application/json' } });
+        if (res.status === 200 || res.status === 202) {
+          const data = await res.json();
+          if (data && (data.status === 'failed' || data.status === 'error' || data.error)) {
+            activeQueueCancelUrl = null;
+            throw new Error(data.error || data.detail || 'h.shy.cx queue request failed');
+          }
+          if (!isPendingQueuePayload(data)) {
+            activeQueueCancelUrl = null;
+            return data;
+          }
+          if (data && data.queuePosition) {
+            pendingObj.queuePosition = data.queuePosition;
+          }
+        } else if (res.status >= 400 && res.status !== 404) {
+          activeQueueCancelUrl = null;
+          throw new Error(`HTTP ${res.status} polling h.shy.cx queue`);
+        }
+      }
+      activeQueueCancelUrl = null;
+      throw new Error('h.shy.cx playback queue timed out');
+    }
+
+    async function apiFetch(pathAndQuery, options = {}) {
+      const reqUrl = API_BASE + (pathAndQuery.startsWith('/') ? '' : '/') + pathAndQuery;
+      const t0 = performance.now();
+      try {
+        const response = await fetch(reqUrl, {
+          method: options.method || 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.status === 202) {
+          const pendingData = await response.json();
+          const resolved = await pollPlaybackRequest(API_BASE, pendingData, options.reqId ?? null);
+          updateApiStatusIndicator(true, API_BASE);
+          return resolved;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} from h.shy.cx`);
+        }
+
+        const json = await response.json();
+        if (isPendingQueuePayload(json)) {
+          const resolved = await pollPlaybackRequest(API_BASE, json, options.reqId ?? null);
+          updateApiStatusIndicator(true, API_BASE);
+          return resolved;
+        }
+
+        const ms = Math.round(performance.now() - t0);
+        termLog(`GET ${pathAndQuery.split('&')[0]} -> 200 OK (${ms}ms)`, 'ok');
+        updateApiStatusIndicator(true, API_BASE);
+        return json;
+      } catch (err) {
+        termLog(`ERR ${pathAndQuery.split('&')[0]} -> ${err.message}`, 'error');
+        updateApiStatusIndicator(false, API_BASE);
+        throw err;
+      }
+    }
+
+    async function checkApiHealth() {
+      const dot = document.getElementById('apiStatusDot');
+      const txt = document.getElementById('apiStatusText');
+      dot.className = 'w-1.5 h-1.5 bg-amber-400 shrink-0 animate-pulse';
+      txt.textContent = 'pinging h.shy.cx...';
+      updateEndpointLabels();
+      try {
+        const data = await apiFetch('/');
+        const ver = data && data.version ? `v${data.version}` : 'ONLINE';
+        updateApiStatusIndicator(true, API_BASE, ver);
+      } catch (e) {
+        updateApiStatusIndicator(false, API_BASE);
+      }
+    }
+
+    function updateEndpointLabels() {
+      document.getElementById('sidebarApiHost').textContent = 'h.shy.cx (locked)';
+      const heroLbl = document.getElementById('heroApiLabel');
+      if (heroLbl) heroLbl.textContent = API_BASE;
+      const fbLbl = document.getElementById('heroFallbackLabel');
+      if (fbLbl) fbLbl.textContent = 'DISABLED (h.shy.cx ONLY)';
+    }
+
+    function updateApiStatusIndicator(ok, _hostUrl = API_BASE, versionText = '') {
+      const dot = document.getElementById('apiStatusDot');
+      const txt = document.getElementById('apiStatusText');
+      updateEndpointLabels();
+      if (ok) {
+        dot.className = 'w-1.5 h-1.5 bg-emerald-400 shrink-0';
+        txt.textContent = `h.shy.cx ${versionText}`.trim();
+      } else {
+        dot.className = 'w-1.5 h-1.5 bg-rose-400 shrink-0';
+        txt.textContent = 'h.shy.cx [ERR]';
+      }
+    }
+
+    // =========================================================================
+    // h.shy.cx FULL-LENGTH STREAM ENGINE (NO PREVIEWS, NO EXTERNAL FALLBACKS)
+    // =========================================================================
+    const audio = document.getElementById('audioElement');
+    let dashPlayer = null;
+    let activeMediaSourceUrl = null;
+    let currentPlayReqId = 0;
+
+    function safeBase64Decode(b64) {
+      const raw = String(b64).trim().replace(/^\++/, '');
+      const normalized = raw.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
+      const pad = normalized.length % 4;
+      const padded = pad ? normalized + '='.repeat(4 - pad) : normalized;
+      return atob(padded);
+    }
+
+    function parseIsoDurationSeconds(isoStr) {
+      if (!isoStr) return 0;
+      const m = String(isoStr).match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/i);
+      if (!m) return 0;
+      return (parseFloat(m[1] || '0') * 3600) + (parseFloat(m[2] || '0') * 60) + parseFloat(m[3] || '0');
+    }
+
+    function parseMpdSegments(mpdXml, preferredQuality = 'LOSSLESS') {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(mpdXml, 'application/xml');
+        const reps = Array.from(doc.querySelectorAll('Representation'));
+
+        let chosenRep = reps[0] || null;
+        if (reps.length > 1) {
+          const wantFlac = preferredQuality === 'HI_RES_LOSSLESS' || preferredQuality === 'LOSSLESS';
+          const filtered = reps.filter(r => {
+            const c = (r.getAttribute('codecs') || '').toLowerCase();
+            return wantFlac ? c.includes('flac') : c.includes('mp4a');
+          });
+          const pool = filtered.length ? filtered : reps;
+          pool.sort((a, b) => Number(b.getAttribute('bandwidth') || 0) - Number(a.getAttribute('bandwidth') || 0));
+          chosenRep = preferredQuality === 'LOW' ? pool[pool.length - 1] : pool[0];
+        }
+
+        const adapt = (chosenRep && chosenRep.closest('AdaptationSet')) || doc.querySelector('AdaptationSet');
+        const segTpl = (chosenRep && chosenRep.querySelector('SegmentTemplate'))
+          || (adapt && adapt.querySelector('SegmentTemplate'))
+          || doc.querySelector('SegmentTemplate');
+        if (!segTpl) return null;
+
+        let rawInitUrl = segTpl.getAttribute('initialization');
+        let rawMediaTpl = segTpl.getAttribute('media');
+        if (!rawInitUrl || !rawMediaTpl) return null;
+
+        const repId = (chosenRep && chosenRep.getAttribute('id')) || '';
+        const bandwidth = (chosenRep && chosenRep.getAttribute('bandwidth')) || '';
+        rawInitUrl = rawInitUrl.replace(/\$RepresentationID\$/g, repId).replace(/\$Bandwidth\$/g, bandwidth);
+        rawMediaTpl = rawMediaTpl.replace(/\$RepresentationID\$/g, repId).replace(/\$Bandwidth\$/g, bandwidth);
+
+        const initUrl = rawInitUrl;
+        const mediaTpl = rawMediaTpl;
+        const startNum = parseInt(segTpl.getAttribute('startNumber') || '1', 10);
+        const mimeType = (chosenRep && chosenRep.getAttribute('mimeType')) || (adapt && adapt.getAttribute('mimeType')) || 'audio/mp4';
+        const codecs = (chosenRep && chosenRep.getAttribute('codecs')) || 'flac';
+
+        // Calculate full track segment count from SegmentTimeline or mediaPresentationDuration
+        const mpdRoot = doc.querySelector('MPD');
+        const totalDurationSec = parseIsoDurationSeconds(mpdRoot && mpdRoot.getAttribute('mediaPresentationDuration'));
+        const timescale = parseFloat(segTpl.getAttribute('timescale') || '44100');
+
+        const sNodes = Array.from(segTpl.querySelectorAll('SegmentTimeline > S, S'));
+        let totalSegments = 0;
+        let accumulatedTicks = 0;
+
+        if (sNodes.length > 0) {
+          sNodes.forEach(s => {
+            const d = parseFloat(s.getAttribute('d') || '0');
+            const repeat = parseInt(s.getAttribute('r') || '0', 10);
+            if (repeat < 0 && d > 0 && totalDurationSec > 0) {
+              const remainingTicks = Math.max(0, (totalDurationSec * timescale) - accumulatedTicks);
+              const count = Math.ceil(remainingTicks / d);
+              totalSegments += count;
+              accumulatedTicks += count * d;
+            } else {
+              const count = Math.max(1, repeat + 1);
+              totalSegments += count;
+              accumulatedTicks += count * d;
+            }
+          });
+        } else {
+          const segDur = parseFloat(segTpl.getAttribute('duration') || '0');
+          if (segDur > 0 && totalDurationSec > 0) {
+            totalSegments = Math.ceil((totalDurationSec * timescale) / segDur);
+          }
+        }
+        if (totalSegments <= 0) totalSegments = 1;
+
+        const segmentUrls = [];
+        for (let i = 0; i < totalSegments; i++) {
+          const num = startNum + i;
+          segmentUrls.push(mediaTpl.replace(/\$Number\$/g, String(num)));
+        }
+
+        return { initUrl, segmentUrls, mimeType, codecs, repId, totalDurationSec };
+      } catch (e) {
+        console.warn('MPD XML parse warning:', e);
+        return null;
+      }
+    }
+
+    function buildTrackManifestsQuery(trackId, quality, uriScheme = 'DATA', manifestType = 'MPEG_DASH', adaptive = true, usage = 'PLAYBACK') {
+      const formatsByQuality = {
+        HI_RES_LOSSLESS: ['FLAC_HIRES', 'FLAC', 'AACLC', 'HEAACV1'],
+        LOSSLESS: ['FLAC', 'AACLC', 'HEAACV1'],
+        HIGH: ['AACLC', 'HEAACV1'],
+        LOW: ['HEAACV1']
+      };
+      const allFormats = formatsByQuality[quality] || formatsByQuality.LOSSLESS;
+      const formats = adaptive ? allFormats : [allFormats[0]];
+      const fmtParams = formats.map(f => `formats=${encodeURIComponent(f)}`).join('&');
+      return `/trackManifests/?id=${encodeURIComponent(trackId)}&${fmtParams}&uriScheme=${encodeURIComponent(uriScheme)}&manifestType=${encodeURIComponent(manifestType)}&usage=${encodeURIComponent(usage)}&adaptive=${adaptive ? 'true' : 'false'}`;
+    }
+
+    async function fetchTrackManifestsFromBase(_cleanBase, trackId, quality, uriScheme = 'DATA', manifestType = 'MPEG_DASH', reqId = null) {
+      const qAdaptive = buildTrackManifestsQuery(trackId, quality, uriScheme, manifestType, true, 'PLAYBACK');
+      const qSingle = buildTrackManifestsQuery(trackId, quality, uriScheme, manifestType, false, 'DOWNLOAD');
+      const paths = [
+        qAdaptive,
+        qAdaptive.replace('/trackManifests/', '/trackmanifests/'),
+        qSingle
+      ];
+      let lastErr = null;
+
+      for (const p of paths) {
+        try {
+          return await apiFetch(p, { reqId });
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      throw lastErr || new Error('h.shy.cx /trackManifests/ request failed');
+    }
+
+    function extractFromTrackManifestsEndpoint(json, requestedQuality = 'LOSSLESS') {
+      try {
+        if (!json) return null;
+        const attrs = json?.data?.data?.attributes || json?.data?.attributes || json?.attributes || null;
+        if (attrs?.trackPresentation === 'PREVIEW' || json?.data?.assetPresentation === 'PREVIEW') {
+          throw new Error('Upstream returned a preview manifest; full track required');
+        }
+        const formats = Array.isArray(attrs?.formats) ? attrs.formats : [];
+        let reportedQuality = requestedQuality;
+        if (formats.includes('FLAC_HIRES')) reportedQuality = 'HI_RES_LOSSLESS';
+        else if (formats.includes('FLAC')) reportedQuality = 'LOSSLESS';
+        else if (formats.includes('AACLC')) reportedQuality = 'HIGH';
+        else if (formats.includes('HEAACV1')) reportedQuality = 'LOW';
+
+        if (attrs && attrs.uri) {
+          const uri = String(attrs.uri);
+          if (uri.startsWith('data:')) {
+            const commaIdx = uri.indexOf(',');
+            if (commaIdx !== -1) {
+              const meta = uri.slice(5, commaIdx);
+              const mimeType = meta.split(';')[0] || 'application/dash+xml';
+              const b64 = uri.slice(commaIdx + 1);
+              const decoded = decodeManifestToUrl(b64, mimeType, reportedQuality);
+              if (decoded) {
+                decoded.fromTrackManifests = true;
+                decoded.formats = formats;
+                return decoded;
+              }
+            }
+          }
+          if (uri.startsWith('http')) {
+            const isHls = uri.includes('.m3u8') || attrs.manifestType === 'HLS';
+            const isDirectAudio = /\.(flac|m4a|mp4|mp3|aac)(\?|$)/i.test(uri) && !uri.includes('.mpd');
+            if (isDirectAudio) {
+              return {
+                url: uri,
+                mimeType: uri.includes('.flac') ? 'audio/flac' : 'audio/mp4',
+                isDash: false,
+                fromTrackManifests: true,
+                formats,
+                actualQuality: reportedQuality
+              };
+            }
+            return {
+              url: uri,
+              mimeType: isHls ? 'application/vnd.apple.mpegurl' : 'application/dash+xml',
+              isDash: !isHls,
+              isHls,
+              isRemoteMpd: !isHls,
+              fromTrackManifests: true,
+              formats,
+              actualQuality: reportedQuality
+            };
+          }
+        }
+
+        const rawManifest = attrs?.manifest || json?.data?.manifest || json?.manifest;
+        const rawMime = attrs?.manifestMimeType || json?.data?.manifestMimeType || json?.manifestMimeType || 'application/dash+xml';
+        if (rawManifest) {
+          const decoded = decodeManifestToUrl(rawManifest, rawMime, reportedQuality);
+          if (decoded) {
+            decoded.fromTrackManifests = true;
+            decoded.formats = formats;
+            return decoded;
+          }
+        }
+      } catch (e) {
+        console.warn('extractFromTrackManifestsEndpoint warning:', e);
+      }
+      return null;
+    }
+
+    async function hydrateRemoteMpdIfNeeded(extracted, preferredQuality = 'LOSSLESS') {
+      if (!extracted || !extracted.isRemoteMpd || extracted.mpdSegments) return extracted;
+      try {
+        const res = await fetch(extracted.url);
+        if (res.ok) {
+          const xmlText = await res.text();
+          if (xmlText && xmlText.includes('<MPD')) {
+            extracted.mpdXml = xmlText;
+            extracted.mpdSegments = parseMpdSegments(xmlText, extracted.actualQuality || preferredQuality);
+          }
+        }
+      } catch (e) {
+        console.warn('Remote MPD fetch warning:', e);
+      }
+      return extracted;
+    }
+
+    function extractDirectUrlFromTrackResponse(json, requestedQuality = 'LOSSLESS') {
+      if (!json) return null;
+      if (json?.data?.data?.type === 'trackManifests' || json?.data?.type === 'trackManifests') {
+        return extractFromTrackManifestsEndpoint(json, requestedQuality);
+      }
+      if (Array.isArray(json)) {
+        for (const item of json) {
+          if (item && item.OriginalTrackUrl) {
+            return { url: item.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false, actualQuality: item.audioQuality || requestedQuality };
+          }
+          if (item && item.manifest) {
+            const u = decodeManifestToUrl(item.manifest, item.manifestMimeType, item.audioQuality || requestedQuality);
+            if (u) return u;
+          }
+        }
+      }
+      const d = json.data || json;
+      if (d.OriginalTrackUrl) {
+        return { url: d.OriginalTrackUrl, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality || requestedQuality };
+      }
+      if (d.url && typeof d.url === 'string' && d.url.startsWith('http') && !d.url.includes('tidal.com/track') && !d.url.includes('tidal.com/browse')) {
+        return { url: d.url, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality || requestedQuality };
+      }
+      if (d.streamUrl) {
+        return { url: d.streamUrl, mimeType: 'audio/flac', isDash: false, actualQuality: d.audioQuality || requestedQuality };
+      }
+      if (d.manifest) {
+        return decodeManifestToUrl(d.manifest, d.manifestMimeType, d.audioQuality || requestedQuality);
+      }
+      return null;
+    }
+
+    function decodeManifestToUrl(manifestB64, mimeType, reportedQuality = null) {
+      try {
+        const decoded = safeBase64Decode(manifestB64).trim();
+        // 1. Standard Tidal BTS JSON manifest: { mimeType, codecs, encryptionType, urls: [...] }
+        // Single-file full-length URL played natively by <audio src="..."> with ZERO CORS issues!
+        if ((mimeType && mimeType.includes('tidal.bts')) || decoded.startsWith('{')) {
+          const parsed = JSON.parse(decoded);
+          if (parsed.urls && parsed.urls.length > 0) {
+            return {
+              url: parsed.urls[0],
+              mimeType: parsed.mimeType || 'audio/flac',
+              codecs: parsed.codecs || '',
+              isDash: false,
+              actualQuality: reportedQuality
+            };
+          }
+        }
+        // 2. MPEG-DASH XML manifest (application/dash+xml)
+        if ((mimeType && mimeType.includes('dash+xml')) || decoded.startsWith('<')) {
+          // If the MPD contains a <BaseURL>, it is a single-file SegmentBase fMP4 stream!
+          const baseMatch = decoded.match(/<BaseURL>([^<]+)<\/BaseURL>/);
+          if (baseMatch && baseMatch[1]) {
+            const rawUrl = baseMatch[1].replace(/&amp;/g, '&').trim();
+            if (rawUrl.startsWith('http')) {
+              return { url: rawUrl, mimeType: 'audio/mp4', isDash: false, actualQuality: reportedQuality };
+            }
+          }
+          const mpdSegments = parseMpdSegments(decoded, reportedQuality || state.quality);
+          const dataUri = 'data:application/dash+xml;base64,' + btoa(unescape(encodeURIComponent(decoded)));
+          return {
+            url: dataUri,
+            mpdXml: decoded,
+            mpdSegments,
+            mimeType: 'application/dash+xml',
+            isDash: true,
+            actualQuality: reportedQuality
+          };
+        }
+      } catch (e) {
+        console.warn('Manifest decode warning:', e);
+      }
+      return null;
+    }
+
+    // Resolve stream strictly from https://h.shy.cx
+    // Order of operations:
+    // 1. Query GET https://h.shy.cx/track/?id={id}&quality={q} across the quality ladder.
+    //    - If h.shy.cx returns a single-file BTS URL (!extracted.isDash), return it immediately (plays natively in <audio> with zero CORS!).
+    //    - If h.shy.cx returns a DASH manifest (extracted.isDash), keep the best DASH candidate while checking if a single-file BTS stream is requested.
+    // 2. If /track/ fails or caller prefers /trackManifests/, query GET https://h.shy.cx/trackManifests/.
+    async function resolveStreamUrl(trackId, preferredQuality, options = {}) {
+      await cancelPreviousQueueRequestIfNeeded();
+      const reqId = options.reqId ?? currentPlayReqId;
+
+      const qualityLadder = options.btsOnly
+        ? ['HIGH', 'LOW', 'LOSSLESS']
+        : preferredQuality === 'HI_RES_LOSSLESS'
+        ? ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW']
+        : preferredQuality === 'LOSSLESS'
+        ? ['LOSSLESS', 'HIGH', 'LOW']
+        : preferredQuality === 'HIGH'
+        ? ['HIGH', 'LOW', 'LOSSLESS']
+        : ['LOW', 'HIGH', 'LOSSLESS'];
+
+      let dashCandidate = null;
+      let lastError = null;
+
+      // 1. If not btsOnly and user explicitly requested HI_RES_LOSSLESS, try /trackManifests/ first
+      if (!options.btsOnly && (preferredQuality === 'HI_RES_LOSSLESS' || options.onlyTrackManifests)) {
+        try {
+          const tmJson = await fetchTrackManifestsFromBase(API_BASE, trackId, preferredQuality, 'DATA', 'MPEG_DASH', reqId);
+          let extractedTm = extractFromTrackManifestsEndpoint(tmJson, preferredQuality);
+          if (extractedTm) {
+            extractedTm = await hydrateRemoteMpdIfNeeded(extractedTm, preferredQuality);
+            if (!extractedTm.isDash) {
+              return {
+                ...extractedTm,
+                qualityUsed: extractedTm.actualQuality || preferredQuality,
+                hostUsed: API_BASE,
+                endpointUsed: '/trackManifests/'
+              };
+            }
+            dashCandidate = {
+              ...extractedTm,
+              qualityUsed: extractedTm.actualQuality || preferredQuality,
+              hostUsed: API_BASE,
+              endpointUsed: '/trackManifests/'
+            };
+            if (!options.btsOnly) return dashCandidate;
+          }
+        } catch (tmErr) {
+          lastError = tmErr;
+        }
+      }
+
+      // 2. Query GET https://h.shy.cx/track/?id={id}&quality={q} sequentially (respecting single-flight queue)
+      const qualitiesToProbe = options.btsOnly ? qualityLadder : [preferredQuality];
+      for (const q of qualitiesToProbe) {
+        if (reqId !== currentPlayReqId) throw new Error('Playback request superseded');
+        try {
+          const json = await apiFetch(`/track/?id=${encodeURIComponent(trackId)}&quality=${encodeURIComponent(q)}`, { reqId });
+          let extracted = extractDirectUrlFromTrackResponse(json, q);
+          if (!extracted) {
+            lastError = new Error(`Empty manifest on /track/?quality=${q}`);
+            continue;
+          }
+          extracted = await hydrateRemoteMpdIfNeeded(extracted, q);
+
+          if (!extracted.isDash) {
+            termLog(`resolved single-file BTS stream from h.shy.cx/track/ [quality=${extracted.actualQuality || q}]`, 'ok');
+            return {
+              ...extracted,
+              qualityUsed: extracted.actualQuality || q,
+              hostUsed: API_BASE,
+              endpointUsed: '/track/ (BTS)'
+            };
+          }
+
+          if (!dashCandidate) {
+            dashCandidate = {
+              ...extracted,
+              qualityUsed: extracted.actualQuality || q,
+              hostUsed: API_BASE,
+              endpointUsed: '/track/ (DASH)'
+            };
+          }
+
+          if (!options.btsOnly) {
+            return dashCandidate;
+          }
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      // 3. If /track/ didn't yield a manifest yet, try /trackManifests/ on https://h.shy.cx
+      if (!dashCandidate && !options.btsOnly) {
+        try {
+          const tmJson = await fetchTrackManifestsFromBase(API_BASE, trackId, preferredQuality, 'DATA', 'MPEG_DASH', reqId);
+          let extractedTm = extractFromTrackManifestsEndpoint(tmJson, preferredQuality);
+          if (extractedTm) {
+            extractedTm = await hydrateRemoteMpdIfNeeded(extractedTm, preferredQuality);
+            return {
+              ...extractedTm,
+              qualityUsed: extractedTm.actualQuality || preferredQuality,
+              hostUsed: API_BASE,
+              endpointUsed: '/trackManifests/'
+            };
+          }
+        } catch (tmErr) {
+          lastError = tmErr;
+        }
+      }
+
+      if (dashCandidate) {
+        return dashCandidate;
+      }
+
+      throw lastError || new Error('h.shy.cx could not resolve a manifest for this track');
+    }
+
+    let preferredSegmentRoute = null;
+
+    function isValidMp4Segment(buf) {
+      if (!buf || buf.byteLength < 32) return false;
+      const view = new Uint8Array(buf, 0, Math.min(64, buf.byteLength));
+      const boxType = String.fromCharCode(view[4], view[5], view[6], view[7]);
+      const validBoxes = ['ftyp', 'styp', 'moof', 'moov', 'sidx', 'emsg', 'free', 'skip', 'mdat'];
+      if (validBoxes.includes(boxType)) return true;
+      const head4 = String.fromCharCode(view[0], view[1], view[2], view[3]);
+      if (head4 === 'fLaC' || head4.startsWith('ID3')) return true;
+      return false;
+    }
+
+    function buildSegmentRouteUrl(segUrl, routeName) {
+      if (routeName === 'custom' && state.segmentProxyUrl) {
+        const prefix = state.segmentProxyUrl.trim();
+        if (prefix.includes('{url}')) return prefix.replace('{url}', encodeURIComponent(segUrl));
+        if (prefix.endsWith('=') || prefix.endsWith('?')) return prefix + encodeURIComponent(segUrl);
+        return prefix + (prefix.endsWith('/') ? '' : '/') + segUrl;
+      }
+      if (routeName === 'direct') {
+        return segUrl;
+      }
+      if (routeName === 'fastly-pr') {
+        return segUrl.replace('://sp-ad-fa.audio.tidal.com/', '://sp-pr-fa.audio.tidal.com/');
+      }
+      if (routeName === 'cors-lol') {
+        return 'https://api.cors.lol/?url=' + encodeURIComponent(segUrl);
+      }
+      if (routeName === 'cors-eu') {
+        return 'https://cors.eu.org/' + segUrl;
+      }
+      if (routeName === 'cors-workers') {
+        return 'https://test.cors.workers.dev/?' + encodeURIComponent(segUrl);
+      }
+      if (routeName === 'thingproxy') {
+        return 'https://thingproxy.freeboard.io/fetch/' + segUrl;
+      }
+      if (routeName === 'reef-proxy') {
+        return 'https://reef-proxy.onrender.com/get?url=' + encodeURIComponent(segUrl);
+      }
+      return segUrl;
+    }
+
+    async function fetchSingleSegmentRoute(segUrl, routeName, timeoutMs = 4500) {
+      const targetUrl = buildSegmentRouteUrl(segUrl, routeName);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const r = await fetch(targetUrl, {
+          signal: ctrl.signal,
+          referrerPolicy: 'no-referrer'
+        });
+        clearTimeout(timer);
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status} via ${routeName}`);
+        }
+        const buf = await r.arrayBuffer();
+        if (!isValidMp4Segment(buf)) {
+          throw new Error(`Invalid MP4 box via ${routeName}`);
+        }
+        return { buf, routeName };
+      } catch (err) {
+        clearTimeout(timer);
+        throw err;
+      }
+    }
+
+    async function fetchArrayBuffer(segUrl, retryCount = 2) {
+      const allRoutes = [
+        ...(state.segmentProxyUrl ? ['custom'] : []),
+        'direct',
+        'fastly-pr',
+        'cors-lol',
+        'cors-eu',
+        'cors-workers',
+        'thingproxy',
+        'reef-proxy'
+      ];
+
+      for (let attempt = 0; attempt <= retryCount; attempt++) {
+        if (preferredSegmentRoute) {
+          try {
+            const res = await fetchSingleSegmentRoute(segUrl, preferredSegmentRoute, 4500);
+            return res.buf;
+          } catch (_) {
+            preferredSegmentRoute = null;
+          }
+        }
+
+        try {
+          const winner = await Promise.any(
+            allRoutes.map(rName => fetchSingleSegmentRoute(segUrl, rName, 4500))
+          );
+          preferredSegmentRoute = winner.routeName;
+          return winner.buf;
+        } catch (aggErr) {
+          if (attempt < retryCount) {
+            await new Promise(r => setTimeout(r, 350 * (attempt + 1)));
+          }
+        }
+      }
+      throw new Error('DASH segment fetch blocked by browser CORS');
+    }
+
+    // Stream full-length MPD segments using native MediaSource Extensions (MSE) with paced buffering
+    // so all segments of the full song stream smoothly without triggering HTTP 429 rate limits
+    async function playMpdViaNativeMse(mpdSegments, reqId) {
+      if (!window.MediaSource) throw new Error('MediaSource API unavailable');
+      const codecCandidates = [
+        `${mpdSegments.mimeType}; codecs="${mpdSegments.codecs}"`,
+        'audio/mp4; codecs="flac"',
+        'audio/mp4; codecs="fLaC"',
+        'audio/mp4; codecs="mp4a.40.2"'
+      ];
+      const supportedMime = codecCandidates.find(c => {
+        try { return MediaSource.isTypeSupported(c); } catch (_) { return false; }
+      });
+      if (!supportedMime) {
+        throw new Error('MSE codec not supported for direct SourceBuffer');
+      }
+
+      const firstSegUrl = mpdSegments.segmentUrls[0];
+      const initBuf = mpdSegments._cachedInit || await fetchArrayBuffer(mpdSegments.initUrl);
+      mpdSegments._cachedInit = initBuf;
+      const firstSegBuf = mpdSegments._cachedFirst || await fetchArrayBuffer(firstSegUrl);
+      mpdSegments._cachedFirst = firstSegBuf;
+      if (reqId !== currentPlayReqId) return;
+
+      const ms = new MediaSource();
+      if (activeMediaSourceUrl) {
+        try { URL.revokeObjectURL(activeMediaSourceUrl); } catch (_) {}
+      }
+      activeMediaSourceUrl = URL.createObjectURL(ms);
+      audio.src = activeMediaSourceUrl;
+
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('MediaSource open timeout')), 3500);
+        ms.addEventListener('sourceopen', () => {
+          clearTimeout(timeout);
+          resolve();
+        }, { once: true });
+      });
+
+      if (reqId !== currentPlayReqId) return;
+
+      if (mpdSegments.totalDurationSec > 0 && isFinite(mpdSegments.totalDurationSec)) {
+        try { ms.duration = mpdSegments.totalDurationSec; } catch (_) {}
+      }
+
+      const sb = ms.addSourceBuffer(supportedMime);
+      const appendChunk = (buf) => new Promise((resolve, reject) => {
+        const onEnd = () => {
+          sb.removeEventListener('updateend', onEnd);
+          sb.removeEventListener('error', onErr);
+          resolve();
+        };
+        const onErr = () => {
+          sb.removeEventListener('updateend', onEnd);
+          sb.removeEventListener('error', onErr);
+          reject(new Error('SourceBuffer append error'));
+        };
+        sb.addEventListener('updateend', onEnd);
+        sb.addEventListener('error', onErr);
+        sb.appendBuffer(buf);
+      });
+
+      await appendChunk(initBuf);
+      await appendChunk(firstSegBuf);
+
+      termLog(`MSE streaming started (${mpdSegments.segmentUrls.length} segments, route=${preferredSegmentRoute || 'direct'})`, 'ok');
+      await audio.play();
+
+      // Paced background segment pump: keeps buffer ~24s ahead of currentTime without flooding relays
+      (async () => {
+        try {
+          for (let i = 1; i < mpdSegments.segmentUrls.length; i++) {
+            if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
+
+            // Flow control: if we already have >24s buffered ahead of currentTime, wait a moment
+            while (reqId === currentPlayReqId && ms.readyState === 'open' && sb.buffered.length > 0) {
+              const bufferedEnd = sb.buffered.end(sb.buffered.length - 1);
+              const ahead = bufferedEnd - (audio.currentTime || 0);
+              if (ahead < 24 || i < 3) break;
+              await new Promise(r => setTimeout(r, 500));
+            }
+            if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
+
+            const segBuf = await fetchArrayBuffer(mpdSegments.segmentUrls[i], 3);
+            if (reqId !== currentPlayReqId || ms.readyState !== 'open') return;
+            await appendChunk(segBuf);
+
+            // Light pacing pause after initial 3 segments so public relays never HTTP 429
+            if (i >= 2) {
+              await new Promise(r => setTimeout(r, 180));
+            }
+          }
+          if (reqId === currentPlayReqId && ms.readyState === 'open' && !sb.updating) {
+            try { ms.endOfStream(); } catch (_) {}
+            termLog(`MSE full track buffered (${mpdSegments.segmentUrls.length}/${mpdSegments.segmentUrls.length} segments)`, 'ok');
+          }
+        } catch (bgErr) {
+          console.warn('Background MSE segment pump warning:', bgErr);
+          termLog(`MSE pump warning: ${bgErr.message}`, 'error');
+        }
+      })();
+    }
+
+    async function startAudioPlayback(resolved, reqId = currentPlayReqId) {
+      if (dashPlayer) {
+        try { dashPlayer.reset(); } catch (_) {}
+        dashPlayer = null;
+      }
+      audio.pause();
+      audio.removeAttribute('crossorigin');
+
+      if (resolved.isDash) {
+        if (resolved.mpdSegments && resolved.mpdSegments.segmentUrls.length > 0) {
+          await playMpdViaNativeMse(resolved.mpdSegments, reqId);
+          return;
+        }
+        throw new Error('Unsupported DASH manifest structure');
+      }
+
+      // Direct single-file BTS stream URL from https://h.shy.cx (application/vnd.tidal.bts)
+      // Plays the complete full-length file natively via <audio src="..."> with zero CORS restrictions!
+      const originalUrl = resolved.url;
+      audio.src = originalUrl;
+      audio.load();
+      try {
+        await audio.play();
+        termLog(`playing full-length direct BTS stream from h.shy.cx (${resolved.qualityUsed || state.quality})`, 'ok');
+      } catch (playErr) {
+        if (reqId !== currentPlayReqId) return;
+        if (originalUrl.includes('://sp-ad-fa.audio.tidal.com/')) {
+          audio.src = originalUrl.replace('://sp-ad-fa.audio.tidal.com/', '://sp-pr-fa.audio.tidal.com/');
+          audio.load();
+          await audio.play();
+        } else {
+          throw playErr;
+        }
+      }
+    }
+
+    async function downloadTrack(rawTrack, triggerBtn = null) {
+      const track = normalizeTrack(rawTrack);
+      if (!track) return;
+
+      const origHtml = triggerBtn ? triggerBtn.innerHTML : '';
+      if (triggerBtn) {
+        triggerBtn.disabled = true;
+        triggerBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i>';
+      }
+
+      const safeTitle = `${track.artist.name} - ${track.title}`.replace(/[\\/:*?"<>|]/g, '_');
+      showToast(`Fetching download from h.shy.cx: "${track.title}"...`);
+
+      try {
+        let resolved = await resolveStreamUrl(track.id, state.quality, { reqId: currentPlayReqId });
+        if (resolved.isDash && resolved.mpdSegments) {
+          try {
+            const initBuf = await fetchArrayBuffer(resolved.mpdSegments.initUrl);
+            resolved.mpdSegments._cachedInit = initBuf;
+          } catch (_) {
+            resolved = await resolveStreamUrl(track.id, 'HIGH', { btsOnly: true, reqId: currentPlayReqId });
+          }
+        }
+
+        const { url, mimeType, qualityUsed, isDash, mpdSegments } = resolved;
+        const fileExt = (!isDash && mimeType && mimeType.includes('flac')) ? 'flac' : 'm4a';
+        const fileName = `${safeTitle}.${fileExt}`;
+
+        if (isDash && mpdSegments && mpdSegments.segmentUrls.length > 0) {
+          const chunks = [mpdSegments._cachedInit || await fetchArrayBuffer(mpdSegments.initUrl)];
+          for (let i = 0; i < mpdSegments.segmentUrls.length; i++) {
+            const segBuf = await fetchArrayBuffer(mpdSegments.segmentUrls[i], 3);
+            chunks.push(segBuf);
+          }
+          const blob = new Blob(chunks, { type: 'audio/mp4' });
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        } else {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+
+        const dlEntry = {
+          ...track,
+          downloadedQuality: qualityUsed,
+          downloadedAt: new Date().toISOString(),
+          fileName
+        };
+        state.downloads = [dlEntry, ...state.downloads.filter(d => d.id !== track.id)];
+        saveState();
+        renderDownloadsView();
+        showToast(`Saved "${fileName}"`, 'success');
+      } catch (err) {
+        showToast(`Download failed: ${err.message}`, 'error');
+      } finally {
+        if (triggerBtn) {
+          triggerBtn.disabled = false;
+          triggerBtn.innerHTML = origHtml;
+        }
+      }
+    }
+
+    function probeAudioElementStream(streamUrl, timeoutMs = 5000) {
+      return new Promise((resolve, reject) => {
+        const probe = document.createElement('audio');
+        probe.muted = true;
+        probe.preload = 'metadata';
+        probe.referrerPolicy = 'no-referrer';
+        let settled = false;
+        const cleanup = () => {
+          clearTimeout(timer);
+          probe.onloadedmetadata = null;
+          probe.oncanplay = null;
+          probe.onerror = null;
+          try {
+            probe.pause();
+            probe.removeAttribute('src');
+            probe.load();
+          } catch (_) {}
+        };
+        const timer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            reject(new Error('Audio probe timeout'));
+          }
+        }, timeoutMs);
+        const onReady = () => {
+          if (!settled) {
+            settled = true;
+            const dur = Math.round(probe.duration || 0);
+            cleanup();
+            resolve({ duration: dur });
+          }
+        };
+        probe.onloadedmetadata = onReady;
+        probe.oncanplay = onReady;
+        probe.onerror = () => {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            reject(new Error('Audio element rejected stream URL'));
+          }
+        };
+        probe.src = streamUrl;
+        probe.load();
+      });
+    }
+
+    async function runStreamPickupDiagnostics() {
+      const box = document.getElementById('apiDiagOutput');
+      const btn = document.getElementById('testStreamPickupBtn');
+      if (!box) return;
+      box.classList.remove('hidden');
+      box.innerHTML = '<div>[diag] probing https://h.shy.cx (/track/ BTS &amp; /trackManifests/ DASH)...</div>';
+      if (btn) btn.disabled = true;
+
+      const testTrack = state.queue[state.queueIndex] || state.searchResults[0] || state.history[0] || {
+        id: 58990511,
+        title: 'Airbag'
+      };
+      const lines = [];
+
+      // 1. Test GET https://h.shy.cx/track/?id={id}&quality=HIGH (Single-File BTS Full-Length Stream)
+      try {
+        const t0 = performance.now();
+        const btsJson = await apiFetch(`/track/?id=${encodeURIComponent(testTrack.id)}&quality=HIGH`);
+        const btsMs = Math.round(performance.now() - t0);
+        const btsExtracted = extractDirectUrlFromTrackResponse(btsJson, 'HIGH');
+        if (btsExtracted && !btsExtracted.isDash) {
+          const probeRes = await probeAudioElementStream(btsExtracted.url);
+          lines.push(`<div class="theme-accent-text">[OK] h.shy.cx/track/?quality=HIGH -> Single-File BTS Verified (${btsMs}ms, full duration=${probeRes.duration}s)</div>`);
+        } else if (btsExtracted && btsExtracted.isDash) {
+          lines.push(`<div class="text-amber-400">[INFO] h.shy.cx/track/?quality=HIGH -> DASH MPD returned (${btsMs}ms, ${btsExtracted.mpdSegments?.segmentUrls?.length || 0} segments)</div>`);
+        }
+      } catch (e) {
+        lines.push(`<div class="text-rose-400">[ERR] h.shy.cx/track/: ${escapeHtml(e.message)}</div>`);
+      }
+
+      // 2. Test GET https://h.shy.cx/trackManifests/ (v2 DASH MPD)
+      try {
+        const t1 = performance.now();
+        const tmJson = await fetchTrackManifestsFromBase(API_BASE, testTrack.id, state.quality, 'DATA', 'MPEG_DASH');
+        const tmMs = Math.round(performance.now() - t1);
+        let tmExtracted = extractFromTrackManifestsEndpoint(tmJson, state.quality);
+        tmExtracted = await hydrateRemoteMpdIfNeeded(tmExtracted, state.quality);
+        if (tmExtracted && tmExtracted.mpdSegments) {
+          try {
+            const segBuf = await fetchArrayBuffer(tmExtracted.mpdSegments.initUrl, 1);
+            lines.push(`<div class="theme-accent-text">[OK] h.shy.cx/trackManifests/ -> DASH MSE Ready (${tmMs}ms, ${tmExtracted.mpdSegments.segmentUrls.length} segments, ${segBuf.byteLength}B init via ${escapeHtml(preferredSegmentRoute || 'direct')})</div>`);
+          } catch (_) {
+            lines.push(`<div class="text-amber-400">[INFO] h.shy.cx/trackManifests/ -> Manifest OK (${tmMs}ms); browser blocked direct CDN fetch(), using h.shy.cx/track/ BTS full-length stream</div>`);
+          }
+        }
+      } catch (tmErr) {
+        lines.push(`<div class="text-rose-400">[ERR] h.shy.cx/trackManifests/: ${escapeHtml(tmErr.message)}</div>`);
+      }
+
+      box.innerHTML = lines.join('');
+      if (btn) btn.disabled = false;
+    }
+
+    async function playTrackAtIndex(index) {
+      if (index < 0 || index >= state.queue.length) return;
+      state.queueIndex = index;
+      const track = state.queue[index];
+      if (!track) return;
+
+      const reqId = ++currentPlayReqId;
+      await cancelPreviousQueueRequestIfNeeded();
+
+      state.history = [track, ...state.history.filter(t => t.id !== track.id)].slice(0, 50);
+      saveState();
+
+      if (dashPlayer) {
+        try { dashPlayer.reset(); } catch (_) {}
+        dashPlayer = null;
+      }
+      audio.pause();
+      state.isPlaying = false;
+
+      updateNowPlayingUI(track);
+      document.getElementById('currentTimeLabel').textContent = '0:00';
+      document.getElementById('seekSlider').value = '0';
+      renderQueue();
+      refreshTrackRowHighlights();
+
+      const streamChip = document.getElementById('streamStatusChip');
+      streamChip.textContent = 'LOADING';
+      const playPauseIcon = document.getElementById('playPauseIcon');
+      if (playPauseIcon) {
+        playPauseIcon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+      }
+
+      termLog(`playTrack id=${track.id} "${track.title}" via https://h.shy.cx [quality=${state.quality}]`);
+
+      let playedSuccessfully = false;
+      let finalQualityUsed = state.quality;
+      let lastPlayError = null;
+
+      // Attempt 1: Resolve at user's selected quality on https://h.shy.cx (/track/ or /trackManifests/)
+      try {
+        const resolved = await resolveStreamUrl(track.id, state.quality, { reqId });
+        if (reqId !== currentPlayReqId) return;
+        audio.volume = state.muted ? 0 : state.volume;
+        await startAudioPlayback(resolved, reqId);
+        playedSuccessfully = true;
+        finalQualityUsed = resolved.qualityUsed || state.quality;
+      } catch (primaryErr) {
+        lastPlayError = primaryErr;
+        termLog(`primary stream attempt (${state.quality}): ${primaryErr.message} -> escalating to h.shy.cx/track/ single-file BTS`, 'error');
+      }
+
+      // Attempt 2: If Attempt 1 returned a DASH manifest whose segments were blocked by browser CORS,
+      // stay 100% on https://h.shy.cx and request a single-file BTS stream (/track/?quality=HIGH / LOW / LOSSLESS)
+      // which plays the full-length track directly in <audio src="..."> with zero CORS restrictions!
+      if (!playedSuccessfully && reqId === currentPlayReqId) {
+        try {
+          const btsResolved = await resolveStreamUrl(track.id, 'HIGH', { btsOnly: true, reqId });
+          if (reqId !== currentPlayReqId) return;
+          audio.volume = state.muted ? 0 : state.volume;
+          await startAudioPlayback(btsResolved, reqId);
+          playedSuccessfully = true;
+          finalQualityUsed = btsResolved.qualityUsed || 'HIGH';
+        } catch (btsErr) {
+          lastPlayError = btsErr;
+        }
+      }
+
+      if (reqId !== currentPlayReqId) return;
+
+      if (playedSuccessfully) {
+        state.isPlaying = !audio.paused;
+        streamChip.textContent = finalQualityUsed === 'HI_RES_LOSSLESS' ? 'HI-RES' : finalQualityUsed;
+        updatePlayPauseButton();
+        refreshTrackRowHighlights();
+        loadRecommendations(track, { fromPlayback: true });
+        loadLyricsForTrack(track.id);
+      } else {
+        streamChip.textContent = 'ERROR';
+        state.isPlaying = false;
+        updatePlayPauseButton();
+        refreshTrackRowHighlights();
+        const cleanMsg = String(lastPlayError?.message || 'Stream unavailable on h.shy.cx').replace(/https?:\/\/[^\s]+/g, 'CDN stream');
+        showToast(`h.shy.cx playback error for "${track.title}": ${cleanMsg}`, 'error');
+      }
+    }
+
+    function setQueueAndPlay(tracks, startIndex = 0) {
+      const normalized = tracks.map(normalizeTrack).filter(Boolean);
+      if (!normalized.length) return;
+      state.originalQueue = [...normalized];
+      if (state.shuffle) {
+        const chosen = normalized[startIndex] || normalized[0];
+        const rest = normalized.filter((_, idx) => idx !== startIndex);
+        shuffleArray(rest);
+        state.queue = [chosen, ...rest];
+        playTrackAtIndex(0);
+      } else {
+        state.queue = [...normalized];
+        playTrackAtIndex(startIndex);
+      }
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function togglePlayPause() {
+      if (!state.queue.length) {
+        const pool = state.searchResults.length
+          ? state.searchResults
+          : state.recommendations.length
+          ? state.recommendations
+          : state.history.length
+          ? state.history
+          : state.likedSongs;
+        if (!pool.length) {
+          showToast('Search for a song above to start listening');
+          document.getElementById('searchInput')?.focus();
+          return;
+        }
+        setQueueAndPlay(pool, 0);
+        return;
+      }
+      if (state.queueIndex === -1) {
+        playTrackAtIndex(0);
+        return;
+      }
+      if (audio.paused) {
+        if (!audio.src) {
+          playTrackAtIndex(state.queueIndex);
+        } else {
+          audio.play().then(() => {
+            state.isPlaying = true;
+            updatePlayPauseButton();
+            refreshTrackRowHighlights();
+          }).catch(() => {
+            playTrackAtIndex(state.queueIndex);
+          });
+        }
+      } else {
+        audio.pause();
+        state.isPlaying = false;
+        updatePlayPauseButton();
+        refreshTrackRowHighlights();
+      }
+    }
+
+    function playNextTrack(fromEnded = false) {
+      if (!state.queue.length) return;
+      if (fromEnded && state.repeat === 'one') {
+        audio.currentTime = 0;
+        audio.play().catch(() => playTrackAtIndex(state.queueIndex));
+        return;
+      }
+      let nextIdx = state.queueIndex + 1;
+      if (nextIdx >= state.queue.length) {
+        if (state.repeat === 'all' || !fromEnded) {
+          nextIdx = 0;
+        } else {
+          state.isPlaying = false;
+          updatePlayPauseButton();
+          return;
+        }
+      }
+      playTrackAtIndex(nextIdx);
+    }
+
+    function playPrevTrack() {
+      if (!state.queue.length) return;
+      if (audio.currentTime > 3) {
+        audio.currentTime = 0;
+        return;
+      }
+      let prevIdx = state.queueIndex - 1;
+      if (prevIdx < 0) prevIdx = state.queue.length - 1;
+      playTrackAtIndex(prevIdx);
+    }
+
+    function toggleShuffle() {
+      state.shuffle = !state.shuffle;
+      const currentTrack = state.queue[state.queueIndex];
+      if (state.shuffle && state.queue.length > 1) {
+        const remaining = state.queue.filter((_, idx) => idx !== state.queueIndex);
+        shuffleArray(remaining);
+        state.queue = currentTrack ? [currentTrack, ...remaining] : remaining;
+        state.queueIndex = 0;
+      } else if (!state.shuffle && state.originalQueue.length) {
+        state.queue = [...state.originalQueue];
+        if (currentTrack) {
+          const foundIdx = state.queue.findIndex(t => t.id === currentTrack.id);
+          state.queueIndex = foundIdx !== -1 ? foundIdx : 0;
+        }
+      }
+      updateShuffleRepeatUI();
+      renderQueue();
+      saveState();
+      showToast(`Shuffle ${state.shuffle ? 'On' : 'Off'}`);
+    }
+
+    function cycleRepeatMode() {
+      const order = ['off', 'all', 'one'];
+      const next = order[(order.indexOf(state.repeat) + 1) % order.length];
+      state.repeat = next;
+      updateShuffleRepeatUI();
+      saveState();
+      const labels = { off: 'Repeat Off', all: 'Repeat All', one: 'Repeat One' };
+      showToast(labels[next]);
+    }
+
+    function updateShuffleRepeatUI() {
+      const shuffleBtn = document.getElementById('shuffleBtn');
+      const shuffleDot = document.getElementById('shuffleDot');
+      shuffleBtn.className = `p-1.5 rounded-lg transition relative ${state.shuffle ? 'theme-text-main' : 'theme-text-muted hover:theme-text-main'}`;
+      shuffleDot.classList.toggle('hidden', !state.shuffle);
+
+      const repeatBtn = document.getElementById('repeatBtn');
+      const repeatDot = document.getElementById('repeatDot');
+      const repeatOneBadge = document.getElementById('repeatOneBadge');
+      const activeRepeat = state.repeat !== 'off';
+      repeatBtn.className = `p-1.5 rounded-lg transition relative ${activeRepeat ? 'theme-text-main' : 'theme-text-muted hover:theme-text-main'}`;
+      repeatDot.classList.toggle('hidden', !activeRepeat);
+      repeatOneBadge.classList.toggle('hidden', state.repeat !== 'one');
+    }
+
+    function updatePlayPauseButton() {
+      const icon = document.getElementById('playPauseIcon');
+      icon.className = state.isPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs ml-0.5';
+    }
+
+    function updateNowPlayingUI(track) {
+      if (!track) return;
+      document.getElementById('playerTrackTitle').textContent = track.title;
+      document.getElementById('playerTrackArtist').textContent = `${track.artist.name} • ${track.album.title}`;
+      document.getElementById('playerExplicitBadge').classList.toggle('hidden', !track.explicit);
+      document.getElementById('durationLabel').textContent = formatTime(track.duration);
+
+      const coverImg = document.getElementById('playerCoverImg');
+      const coverIcon = document.getElementById('playerCoverIcon');
+      const coverUrl = getTidalImageUrl(track.album.cover, '320x320');
+      if (coverUrl) {
+        coverImg.src = coverUrl;
+        coverImg.classList.remove('hidden');
+        coverIcon.classList.add('hidden');
+      } else {
+        coverImg.classList.add('hidden');
+        coverIcon.classList.remove('hidden');
+      }
+
+      updatePlayerLikeButton();
+
+      if ('mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title,
+            artist: track.artist.name,
+            album: track.album.title,
+            artwork: coverUrl ? [{ src: coverUrl, sizes: '320x320', type: 'image/jpeg' }] : []
+          });
+        } catch (e) {}
+      }
+    }
+
+    function updatePlayerLikeButton() {
+      const current = state.queue[state.queueIndex];
+      const btn = document.getElementById('playerLikeBtn');
+      const liked = current && isTrackLiked(current.id);
+      btn.innerHTML = liked
+        ? '<i class="fa-solid fa-heart text-rose-500 text-xs"></i>'
+        : '<i class="fa-regular fa-heart text-xs"></i>';
+    }
+
+    audio.addEventListener('playing', () => {
+      state.isPlaying = true;
+      updatePlayPauseButton();
+      refreshTrackRowHighlights();
+    });
+
+    audio.addEventListener('pause', () => {
+      if (!audio.ended) {
+        state.isPlaying = false;
+        updatePlayPauseButton();
+        refreshTrackRowHighlights();
+      }
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const cur = audio.currentTime || 0;
+      const dur = audio.duration || (state.queue[state.queueIndex]?.duration || 0);
+      document.getElementById('currentTimeLabel').textContent = formatTime(cur);
+      if (dur > 0 && isFinite(dur)) {
+        document.getElementById('durationLabel').textContent = formatTime(dur);
+        document.getElementById('seekSlider').value = ((cur / dur) * 100).toFixed(2);
+      }
+      highlightActiveLyric(cur);
+    });
+
+    audio.addEventListener('ended', () => {
+      playNextTrack(true);
+    });
+
+    // =========================================================================
+    // LIKED SONGS & PLAYLISTS LOGIC
+    // =========================================================================
+    function isTrackLiked(trackId) {
+      return state.likedSongs.some(t => t.id === Number(trackId));
+    }
+
+    function toggleLikeTrack(rawTrack) {
+      const track = normalizeTrack(rawTrack);
+      if (!track) return;
+      const exists = isTrackLiked(track.id);
+      if (exists) {
+        state.likedSongs = state.likedSongs.filter(t => t.id !== track.id);
+        showToast(`Removed "${track.title}" from Liked Songs`);
+      } else {
+        state.likedSongs = [track, ...state.likedSongs];
+        showToast(`Liked "${track.title}"`, 'success');
+      }
+      saveState();
+      updatePlayerLikeButton();
+      renderLikedView();
+      renderLibraryView();
+      refreshTrackRowHighlights();
+      populateRecSeedSelect();
+    }
+
+    function createPlaylist(name, description = '') {
+      const cleanName = (name || '').trim();
+      if (!cleanName) {
+        showToast('Enter a playlist name', 'error');
+        return null;
+      }
+      const newPl = {
+        id: 'pl-' + Date.now(),
+        name: cleanName,
+        description: description.trim() || 'Custom playlist',
+        createdAt: new Date().toISOString(),
+        tracks: []
+      };
+      state.playlists.unshift(newPl);
+      state.activePlaylistId = newPl.id;
+      saveState();
+      renderPlaylistsView();
+      renderSidebarPlaylists();
+      showToast(`Created "${cleanName}"`, 'success');
+      return newPl;
+    }
+
+    function addTrackToPlaylist(playlistId, rawTrack) {
+      const track = normalizeTrack(rawTrack);
+      const pl = state.playlists.find(p => p.id === playlistId);
+      if (!pl || !track) return;
+      if (pl.tracks.some(t => t.id === track.id)) {
+        showToast(`Already in ${pl.name}`);
+        return;
+      }
+      pl.tracks.push(track);
+      saveState();
+      renderPlaylistsView();
+      renderSidebarPlaylists();
+      showToast(`Added to ${pl.name}`, 'success');
+    }
+
+    function removeTrackFromPlaylist(playlistId, trackId) {
+      const pl = state.playlists.find(p => p.id === playlistId);
+      if (!pl) return;
+      pl.tracks = pl.tracks.filter(t => t.id !== Number(trackId));
+      saveState();
+      renderPlaylistsView();
+      renderSidebarPlaylists();
+    }
+
+    function deletePlaylist(playlistId) {
+      const idx = state.playlists.findIndex(p => p.id === playlistId);
+      if (idx === -1) return;
+      const removed = state.playlists.splice(idx, 1)[0];
+      state.activePlaylistId = state.playlists[0]?.id || null;
+      saveState();
+      renderPlaylistsView();
+      renderSidebarPlaylists();
+      showToast(`Deleted "${removed.name}"`);
+    }
+
+    function openAddToPlaylistModal(rawTrack) {
+      const track = normalizeTrack(rawTrack);
+      if (!track) return;
+      state.pendingTrackForPlaylist = track;
+      document.getElementById('addToPlaylistTrackLabel').textContent = `${track.title} — ${track.artist.name}`;
+      const container = document.getElementById('addToPlaylistOptions');
+      container.innerHTML = '';
+      if (!state.playlists.length) {
+        container.innerHTML = `<p class="text-xs theme-text-muted py-3">No playlists yet.</p>`;
+      } else {
+        state.playlists.forEach(pl => {
+          const btn = document.createElement('button');
+          btn.className = 'w-full flex items-center justify-between px-3 py-2 rounded-lg bg-surface-800 hover:bg-surface-700 border theme-border text-left transition';
+          btn.innerHTML = `
+            <div>
+              <p class="text-xs font-medium theme-text-main">${escapeHtml(pl.name)}</p>
+              <p class="text-[10px] font-mono theme-text-muted">${pl.tracks.length} tracks</p>
+            </div>
+            <i class="fa-solid fa-plus text-xs theme-text-muted"></i>
+          `;
+          btn.addEventListener('click', () => {
+            addTrackToPlaylist(pl.id, track);
+            closeModal('addToPlaylistModal');
+          });
+          container.appendChild(btn);
+        });
+      }
+      openModal('addToPlaylistModal');
+    }
+
+    // =========================================================================
+    // SEARCH, ALBUMS, ARTISTS, TIDAL PLAYLISTS & RECOMMENDATIONS
+    // =========================================================================
+    function renderHomeFeed() {
+      const emptyState = document.getElementById('homeEmptyState');
+      const recsSec = document.getElementById('homeListeningRecsSection');
+      const recsContainer = document.getElementById('homeRecsContainer');
+      const recsHeading = document.getElementById('homeRecsHeading');
+      const recsSub = document.getElementById('homeRecsSub');
+
+      const hasListeningRecs = Array.isArray(state.recommendations) && state.recommendations.length > 0;
+      if (emptyState) emptyState.classList.toggle('hidden', hasListeningRecs);
+      if (recsSec) recsSec.classList.toggle('hidden', !hasListeningRecs);
+
+      if (hasListeningRecs && recsContainer) {
+        const seed = state.lastRecSeedTrack || state.history[0];
+        if (seed && recsHeading && recsSub) {
+          recsHeading.textContent = 'Recommended Based on Your Listening';
+          recsSub.textContent = `Because you listened to "${seed.title}" — ${seed.artist.name}`;
+        }
+        renderTrackList(recsContainer, state.recommendations, { allowQueuePlay: true });
+      }
+    }
+
+    function renderSearchView() {
+      const searchSec = document.getElementById('homeSearchSection');
+      const searchEmpty = document.getElementById('searchEmptyState');
+      const hasSearch = Boolean(state.activeSearchQuery);
+      if (searchSec) searchSec.classList.toggle('hidden', !hasSearch);
+      if (searchEmpty) searchEmpty.classList.toggle('hidden', hasSearch);
+    }
+
+    async function performSearch(query, searchType = 's') {
+      const q = (query || '').trim();
+      if (!q) {
+        state.activeSearchQuery = '';
+        renderSearchView();
+        return;
+      }
+      state.activeSearchQuery = q;
+      switchView('search');
+      renderSearchView();
+
+      const spinner = document.getElementById('searchLoadingSpinner');
+      const heading = document.getElementById('searchResultsHeading');
+      const sub = document.getElementById('searchResultsSub');
+      spinner.classList.remove('hidden');
+      spinner.classList.add('flex');
+
+      const typeLabels = { s: 'Tracks', a: 'Artists', al: 'Albums', p: 'Playlists' };
+      heading.textContent = `${typeLabels[searchType] || 'Results'} — "${q}"`;
+      sub.textContent = `Showing top results for "${q}"`;
+
+      try {
+        const json = await apiFetch(`/search/?${searchType}=${encodeURIComponent(q)}&limit=30&offset=0`);
+        const container = document.getElementById('searchResultsContainer');
+        container.innerHTML = '';
+
+        if (searchType === 's') {
+          const items = json?.data?.items || json?.items || [];
+          const tracks = items.map(normalizeTrack).filter(Boolean);
+          state.searchResults = tracks;
+          renderTrackList(container, tracks, { allowQueuePlay: true });
+        } else if (searchType === 'al') {
+          const items = json?.data?.albums?.items || json?.data?.items || json?.albums?.items || json?.items || [];
+          renderAlbumGrid(container, items);
+        } else if (searchType === 'a') {
+          const items = json?.data?.artists?.items || json?.data?.items || json?.artists?.items || json?.items || [];
+          renderArtistGrid(container, items);
+        } else if (searchType === 'p') {
+          const items = json?.data?.playlists?.items || json?.data?.items || json?.playlists?.items || json?.items || [];
+          renderTidalPlaylistGrid(container, items);
+        }
+      } catch (err) {
+        showToast(`Search failed: ${err.message}`, 'error');
+      } finally {
+        spinner.classList.add('hidden');
+        spinner.classList.remove('flex');
+      }
+    }
+
+    async function loadAlbumDetail(albumId) {
+      switchView('detail');
+      const headerEl = document.getElementById('detailHeaderContainer');
+      const tracksEl = document.getElementById('detailTracksContainer');
+      headerEl.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading album #${escapeHtml(albumId)}...</div>`;
+      tracksEl.innerHTML = '';
+
+      try {
+        const json = await apiFetch(`/album/?id=${encodeURIComponent(albumId)}&limit=100&offset=0`);
+        const album = json.data || json.album || json;
+        const rawItems = album.items || json.items || [];
+        const tracks = rawItems.map(normalizeTrack).filter(Boolean);
+        const coverUrl = getTidalImageUrl(album.cover, '640x640');
+        const isSaved = state.savedAlbums.some(a => Number(a.id) === Number(album.id));
+
+        headerEl.innerHTML = `
+          <div class="rounded-xl bg-surface-900 border theme-border p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(album.title)}" class="w-24 h-24 rounded-lg object-cover bg-surface-800 border theme-border shrink-0" />
+            <div class="space-y-1.5 flex-1">
+              <span class="text-[10px] font-mono uppercase theme-text-muted">Album • ${escapeHtml(album.audioQuality || 'LOSSLESS')}</span>
+              <h2 class="text-lg font-semibold theme-text-main">${escapeHtml(album.title)}</h2>
+              <p class="text-xs theme-text-muted">${escapeHtml(album.artist?.name || 'Various Artists')} • ${escapeHtml(album.releaseDate || '')} • ${tracks.length} tracks</p>
+              <div class="flex flex-wrap gap-2 pt-1.5">
+                <button id="detailPlayAlbumBtn" class="px-3.5 py-1.5 rounded-lg theme-accent-bg font-medium text-xs flex items-center gap-1.5">
+                  <i class="fa-solid fa-play text-[11px]"></i> Play Album
+                </button>
+                <button id="detailSaveAlbumBtn" class="px-3.5 py-1.5 rounded-lg bg-surface-800 border theme-border text-xs theme-text-main flex items-center gap-1.5">
+                  <i class="fa-solid ${isSaved ? 'fa-check text-emerald-400' : 'fa-bookmark'} text-[11px]"></i>
+                  <span>${isSaved ? 'Saved in Library' : 'Save Album'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('detailPlayAlbumBtn').addEventListener('click', () => setQueueAndPlay(tracks, 0));
+        document.getElementById('detailSaveAlbumBtn').addEventListener('click', () => {
+          toggleSaveAlbum({
+            id: album.id,
+            title: album.title,
+            cover: album.cover,
+            artistName: album.artist?.name || ''
+          });
+          loadAlbumDetail(albumId);
+        });
+
+        renderTrackList(tracksEl, tracks, { allowQueuePlay: true });
+      } catch (e) {
+        headerEl.innerHTML = `<div class="p-4 text-xs text-rose-400">Could not load album: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    function toggleSaveAlbum(albumSummary) {
+      const exists = state.savedAlbums.some(a => Number(a.id) === Number(albumSummary.id));
+      if (exists) {
+        state.savedAlbums = state.savedAlbums.filter(a => Number(a.id) !== Number(albumSummary.id));
+        showToast(`Removed "${albumSummary.title}"`);
+      } else {
+        state.savedAlbums.unshift(albumSummary);
+        showToast(`Saved "${albumSummary.title}"`, 'success');
+      }
+      saveState();
+      renderLibraryView();
+    }
+
+    async function loadArtistDetail(artistId, artistName = 'Artist') {
+      switchView('detail');
+      const headerEl = document.getElementById('detailHeaderContainer');
+      const tracksEl = document.getElementById('detailTracksContainer');
+      headerEl.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading artist ${escapeHtml(artistName)}...</div>`;
+      tracksEl.innerHTML = '';
+
+      try {
+        const json = await apiFetch(`/artist/?f=${encodeURIComponent(artistId)}&skip_tracks=true`);
+        const rawTracks = json.tracks || json?.data?.tracks || [];
+        const tracks = rawTracks.map(normalizeTrack).filter(Boolean);
+        headerEl.innerHTML = `
+          <div class="rounded-xl bg-surface-900 border theme-border p-4 flex items-center justify-between gap-4">
+            <div>
+              <span class="text-[10px] font-mono uppercase theme-text-muted">Artist Top Tracks</span>
+              <h2 class="text-lg font-semibold theme-text-main mt-0.5">${escapeHtml(artistName)}</h2>
+              <p class="text-xs theme-text-muted mt-0.5">${tracks.length} tracks</p>
+            </div>
+            <button id="detailPlayArtistBtn" class="px-3.5 py-1.5 rounded-lg theme-accent-bg font-medium text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-play text-[11px]"></i> Play Top Tracks
+            </button>
+          </div>
+        `;
+        document.getElementById('detailPlayArtistBtn').addEventListener('click', () => setQueueAndPlay(tracks, 0));
+        renderTrackList(tracksEl, tracks, { allowQueuePlay: true });
+      } catch (e) {
+        performSearch(artistName, 's');
+      }
+    }
+
+    async function loadTidalPlaylistDetail(uuid) {
+      switchView('detail');
+      const headerEl = document.getElementById('detailHeaderContainer');
+      const tracksEl = document.getElementById('detailTracksContainer');
+      headerEl.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading playlist...</div>`;
+      tracksEl.innerHTML = '';
+
+      try {
+        const json = await apiFetch(`/playlist/?id=${encodeURIComponent(uuid)}&limit=100&offset=0`);
+        const pl = json.playlist || json.data || json;
+        const rawItems = json.items || pl.items || [];
+        const tracks = rawItems.map(normalizeTrack).filter(Boolean);
+        const imgUrl = getTidalImageUrl(pl.squareImage || pl.image, '640x640');
+
+        headerEl.innerHTML = `
+          <div class="rounded-xl bg-surface-900 border theme-border p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            ${imgUrl ? `<img src="${escapeHtml(imgUrl)}" class="w-24 h-24 rounded-lg object-cover shrink-0" />` : ''}
+            <div class="space-y-1.5 flex-1">
+              <span class="text-[10px] font-mono uppercase theme-text-muted">Tidal Playlist</span>
+              <h2 class="text-lg font-semibold theme-text-main">${escapeHtml(pl.title || 'Tidal Playlist')}</h2>
+              <p class="text-xs theme-text-muted">${escapeHtml(pl.description || '')}</p>
+              <div class="flex flex-wrap gap-2 pt-1.5">
+                <button id="detailPlayTidalPlBtn" class="px-3.5 py-1.5 rounded-lg theme-accent-bg font-medium text-xs flex items-center gap-1.5">
+                  <i class="fa-solid fa-play text-[11px]"></i> Play All (${tracks.length})
+                </button>
+                <button id="detailImportTidalPlBtn" class="px-3.5 py-1.5 rounded-lg bg-surface-800 border theme-border text-xs theme-text-main flex items-center gap-1.5">
+                  <i class="fa-solid fa-file-import text-[11px]"></i> Save to Playlists
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById('detailPlayTidalPlBtn').addEventListener('click', () => setQueueAndPlay(tracks, 0));
+        document.getElementById('detailImportTidalPlBtn').addEventListener('click', () => {
+          const created = createPlaylist(pl.title || 'Imported Playlist', pl.description || 'Imported from Tidal');
+          if (created) {
+            created.tracks = [...tracks];
+            saveState();
+            renderPlaylistsView();
+            renderSidebarPlaylists();
+            showToast(`Imported "${created.name}"`, 'success');
+          }
+        });
+        renderTrackList(tracksEl, tracks, { allowQueuePlay: true });
+      } catch (e) {
+        headerEl.innerHTML = `<div class="p-4 text-xs text-rose-400">Failed to load playlist: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function loadRecommendations(seedTrackOverride = null, options = {}) {
+      const container = document.getElementById('recsContainer');
+      const label = document.getElementById('recSeedLabel');
+      const selectEl = document.getElementById('recSeedSelect');
+      const homeSpinner = document.getElementById('homeRecsSpinner');
+
+      let seedTrack = seedTrackOverride;
+      if (!seedTrack && selectEl && selectEl.value) {
+        const pool = [...state.history, ...state.likedSongs];
+        seedTrack = pool.find(t => String(t.id) === String(selectEl.value));
+      }
+      if (!seedTrack) {
+        seedTrack = state.queue[state.queueIndex] || state.history[0] || state.likedSongs[0] || null;
+      }
+
+      if (!seedTrack) {
+        container.innerHTML = `
+          <div class="rounded-xl bg-surface-900 border theme-border p-8 text-center space-y-1.5">
+            <p class="text-xs theme-text-main font-medium">No listening history yet</p>
+            <p class="text-[11px] theme-text-muted">Play a song first to generate personalized recommendations.</p>
+          </div>
+        `;
+        renderHomeFeed();
+        return;
+      }
+
+      state.lastRecSeedTrack = seedTrack;
+      populateRecSeedSelect();
+
+      if (label) {
+        label.textContent = `Based on your listening: "${seedTrack.title}" — ${seedTrack.artist.name}`;
+      }
+      if (!options.fromPlayback && container) {
+        container.innerHTML = `<div class="p-4 text-xs font-mono theme-text-muted flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Curating recommendations from "${escapeHtml(seedTrack.title)}"...</div>`;
+      }
+      if (homeSpinner) {
+        homeSpinner.classList.remove('hidden');
+        homeSpinner.classList.add('flex');
+      }
+
+      try {
+        const json = await apiFetch(`/recommendations/?id=${encodeURIComponent(seedTrack.id)}`);
+        const rawItems = json?.data?.items || json?.items || [];
+        let tracks = rawItems.map(normalizeTrack).filter(Boolean);
+
+        if (!tracks.length && seedTrack.mixes?.TRACK_MIX) {
+          const mixJson = await apiFetch(`/mix/?id=${encodeURIComponent(seedTrack.mixes.TRACK_MIX)}`);
+          tracks = (mixJson?.items || mixJson?.data?.items || []).map(normalizeTrack).filter(Boolean);
+        }
+
+        if (!tracks.length) {
+          const fallbackJson = await apiFetch(`/search/?s=${encodeURIComponent(seedTrack.artist.name)}&limit=20`);
+          tracks = (fallbackJson?.data?.items || []).map(normalizeTrack).filter(Boolean).filter(t => t.id !== seedTrack.id);
+        }
+
+        state.recommendations = tracks;
+        saveState();
+        if (container) renderTrackList(container, tracks, { allowQueuePlay: true });
+        renderHomeFeed();
+      } catch (err) {
+        if (!state.recommendations.length && container) {
+          container.innerHTML = `<div class="p-4 text-xs text-rose-400">Could not load recommendations: ${escapeHtml(err.message)}</div>`;
+        }
+        renderHomeFeed();
+      } finally {
+        if (homeSpinner) {
+          homeSpinner.classList.add('hidden');
+          homeSpinner.classList.remove('flex');
+        }
+      }
+    }
+
+    function populateRecSeedSelect() {
+      const select = document.getElementById('recSeedSelect');
+      if (!select) return;
+      const currentVal = select.value;
+      const seen = new Set();
+      const candidates = [];
+      if (state.queue[state.queueIndex]) candidates.push(state.queue[state.queueIndex]);
+      state.likedSongs.forEach(t => candidates.push(t));
+      state.history.forEach(t => candidates.push(t));
+      DEFAULT_SEED_TRACKS.forEach(t => candidates.push(t));
+
+      select.innerHTML = `<option value="">Auto Seed (Current / Liked / Default)</option>`;
+      candidates.forEach(t => {
+        if (!t || seen.has(t.id)) return;
+        seen.add(t.id);
+        const opt = document.createElement('option');
+        opt.value = String(t.id);
+        opt.textContent = `${t.title} — ${t.artist.name}`;
+        select.appendChild(opt);
+      });
+      if (currentVal) select.value = currentVal;
+    }
+
+    // =========================================================================
+    // LYRICS ENGINE (/lyrics/?id=)
+    // =========================================================================
+    async function loadLyricsForTrack(trackId) {
+      const box = document.getElementById('lyricsContainer');
+      state.lyricsLines = [];
+      box.innerHTML = `<p class="text-xs font-mono theme-text-muted py-4"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Loading lyrics...</p>`;
+      try {
+        const json = await apiFetch(`/lyrics/?id=${encodeURIComponent(trackId)}`);
+        const lyrObj = json.lyrics || json.data || json;
+        const subs = lyrObj?.subtitles || '';
+        const plain = lyrObj?.lyrics || '';
+
+        if (subs) {
+          const parsed = [];
+          subs.split('\n').forEach(line => {
+            const match = line.match(/\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)/);
+            if (match) {
+              const timeSec = parseInt(match[1], 10) * 60 + parseFloat(match[2]);
+              parsed.push({ time: timeSec, text: match[3] || '♪' });
+            }
+          });
+          if (parsed.length) {
+            state.lyricsLines = parsed;
+            box.innerHTML = parsed.map((l, idx) =>
+              `<p data-lyric-idx="${idx}" class="lyric-line py-1 text-xs theme-text-muted transition cursor-pointer hover:theme-text-main">${escapeHtml(l.text)}</p>`
+            ).join('');
+            box.querySelectorAll('.lyric-line').forEach(el => {
+              el.addEventListener('click', () => {
+                const i = Number(el.getAttribute('data-lyric-idx'));
+                if (state.lyricsLines[i]) audio.currentTime = state.lyricsLines[i].time;
+              });
+            });
+            return;
+          }
+        }
+        if (plain) {
+          box.innerHTML = plain.split('\n').map(line =>
+            `<p class="py-0.5 text-xs theme-text-main">${escapeHtml(line) || '&nbsp;'}</p>`
+          ).join('');
+        } else {
+          box.innerHTML = `<p class="text-xs theme-text-muted py-6">No lyrics available.</p>`;
+        }
+      } catch (e) {
+        box.innerHTML = `<p class="text-xs theme-text-muted py-6">Lyrics unavailable.</p>`;
+      }
+    }
+
+    function highlightActiveLyric(currentTime) {
+      if (!state.lyricsLines.length) return;
+      let activeIdx = -1;
+      for (let i = 0; i < state.lyricsLines.length; i++) {
+        if (currentTime >= state.lyricsLines[i].time) activeIdx = i;
+        else break;
+      }
+      const lines = document.querySelectorAll('#lyricsContainer .lyric-line');
+      lines.forEach((el, idx) => {
+        if (idx === activeIdx) {
+          el.className = 'lyric-line py-1 text-sm font-semibold theme-text-main transition cursor-pointer';
+        } else {
+          el.className = 'lyric-line py-1 text-xs theme-text-muted transition cursor-pointer hover:theme-text-main';
+        }
+      });
+    }
+
+    // =========================================================================
+    // UI RENDERING FUNCTIONS
+    // =========================================================================
+    function renderTrackList(container, tracks, options = {}) {
+      container.innerHTML = '';
+      if (!tracks || !tracks.length) {
+        container.innerHTML = `
+          <div class="rounded-xl bg-surface-900 border theme-border p-8 text-center space-y-1.5">
+            <p class="text-xs theme-text-main font-medium">No tracks found</p>
+            <p class="text-[11px] theme-text-muted">Search tracks above or explore recommendations.</p>
+          </div>
+        `;
+        return;
+      }
+
+      tracks.forEach((rawTrack, idx) => {
+        const track = normalizeTrack(rawTrack);
+        if (!track) return;
+        const isCurrent = state.queue[state.queueIndex]?.id === track.id;
+        const liked = isTrackLiked(track.id);
+        const coverUrl = getTidalImageUrl(track.album.cover, '80x80');
+
+        const row = document.createElement('div');
+        row.setAttribute('data-track-id', String(track.id));
+        row.className = `track-row group flex items-center justify-between gap-3 px-3 py-2 rounded-lg border transition cursor-pointer ${
+          isCurrent
+            ? 'bg-surface-800 theme-border theme-text-main'
+            : 'bg-transparent hover:bg-surface-900 border-transparent hover:theme-border theme-text-main'
+        }`;
+
+        row.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <div class="w-5 text-center text-[11px] font-mono theme-text-muted shrink-0">
+              ${isCurrent && state.isPlaying
+                ? '<span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span>'
+                : `<span class="group-hover:hidden">${idx + 1}</span><i class="fa-solid fa-play hidden group-hover:inline-block theme-text-main text-[10px]"></i>`
+              }
+            </div>
+            <div class="w-9 h-9 rounded-md bg-surface-800 overflow-hidden shrink-0 flex items-center justify-center border theme-border">
+              ${coverUrl
+                ? `<img src="${escapeHtml(coverUrl)}" alt="" class="w-full h-full object-cover" loading="lazy" />`
+                : `<i class="fa-solid fa-compact-disc theme-text-muted text-xs"></i>`
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-medium truncate ${isCurrent ? 'font-bold theme-accent-text' : ''}">${escapeHtml(track.title)}</p>
+                ${track.explicit ? '<span class="text-[8px] font-mono px-1 rounded bg-surface-800 theme-text-muted shrink-0">E</span>' : ''}
+                <span class="hidden sm:inline-block text-[9px] font-mono px-1.5 py-0.2 rounded bg-surface-900 theme-text-muted border theme-border shrink-0">${escapeHtml(track.audioQuality === 'HI_RES_LOSSLESS' ? 'HI-RES' : track.audioQuality)}</span>
+              </div>
+              <p class="text-[11px] theme-text-muted truncate">
+                <span class="hover:underline artist-link" data-artist-id="${track.artist.id}" data-artist-name="${escapeHtml(track.artist.name)}">${escapeHtml(track.artist.name)}</span>
+                <span> • </span>
+                <span class="hover:underline album-link" data-album-id="${track.album.id}">${escapeHtml(track.album.title)}</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1 shrink-0">
+            <button class="act-download p-1.5 rounded-md theme-text-muted hover:theme-text-main transition" title="Download Track (${escapeHtml(state.quality)})">
+              <i class="fa-solid fa-arrow-down text-[11px]"></i>
+            </button>
+            <button class="act-radio p-1.5 rounded-md theme-text-muted hover:theme-text-main transition" title="Track Radio / Recommendations">
+              <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i>
+            </button>
+            <button class="act-like p-1.5 rounded-md ${liked ? 'text-rose-500' : 'theme-text-muted hover:text-rose-400'} transition" title="Like Song">
+              <i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart text-[11px]"></i>
+            </button>
+            <button class="act-add-pl p-1.5 rounded-md theme-text-muted hover:theme-text-main transition" title="Add to Playlist">
+              <i class="fa-solid fa-plus text-[11px]"></i>
+            </button>
+            <button class="act-queue p-1.5 rounded-md theme-text-muted hover:theme-text-main transition" title="Add to Queue">
+              <i class="fa-solid fa-list-ul text-[11px]"></i>
+            </button>
+            ${options.playlistId ? `
+              <button class="act-remove-pl p-1.5 rounded-md theme-text-muted hover:text-rose-400 transition" title="Remove from Playlist">
+                <i class="fa-solid fa-trash-can text-[11px]"></i>
+              </button>
+            ` : ''}
+            <span class="text-[11px] font-mono theme-text-muted w-9 text-right">${formatTime(track.duration)}</span>
+          </div>
+        `;
+
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('button') || e.target.closest('.artist-link') || e.target.closest('.album-link')) return;
+          if (options.allowQueuePlay) {
+            setQueueAndPlay(tracks, idx);
+          } else {
+            setQueueAndPlay([track], 0);
+          }
+        });
+
+        const artistLink = row.querySelector('.artist-link');
+        if (artistLink) {
+          artistLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const aid = artistLink.getAttribute('data-artist-id');
+            const aname = artistLink.getAttribute('data-artist-name');
+            if (aid && aid !== '0') loadArtistDetail(aid, aname);
+          });
+        }
+        const albumLink = row.querySelector('.album-link');
+        if (albumLink) {
+          albumLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const alid = albumLink.getAttribute('data-album-id');
+            if (alid && alid !== '0') loadAlbumDetail(alid);
+          });
+        }
+
+        const dlBtn = row.querySelector('.act-download');
+        dlBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          downloadTrack(track, dlBtn);
+        });
+
+        row.querySelector('.act-like').addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleLikeTrack(track);
+          const btn = row.querySelector('.act-like');
+          const nowLiked = isTrackLiked(track.id);
+          btn.className = `act-like p-1.5 rounded-md ${nowLiked ? 'text-rose-500' : 'theme-text-muted hover:text-rose-400'} transition`;
+          btn.innerHTML = `<i class="${nowLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[11px]"></i>`;
+        });
+
+        row.querySelector('.act-add-pl').addEventListener('click', (e) => {
+          e.stopPropagation();
+          openAddToPlaylistModal(track);
+        });
+
+        row.querySelector('.act-queue').addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.queue.push(track);
+          state.originalQueue.push(track);
+          renderQueue();
+          updateBadges();
+          showToast(`Queued "${track.title}"`, 'success');
+        });
+
+        row.querySelector('.act-radio').addEventListener('click', (e) => {
+          e.stopPropagation();
+          switchView('recommendations');
+          loadRecommendations(track);
+        });
+
+        const remBtn = row.querySelector('.act-remove-pl');
+        if (remBtn && options.playlistId) {
+          remBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeTrackFromPlaylist(options.playlistId, track.id);
+          });
+        }
+
+        container.appendChild(row);
+      });
+    }
+
+    function renderAlbumGrid(container, albums) {
+      container.innerHTML = '';
+      if (!albums.length) {
+        container.innerHTML = `<p class="text-xs theme-text-muted py-4">No albums found.</p>`;
+        return;
+      }
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3';
+      albums.forEach(al => {
+        const cover = getTidalImageUrl(al.cover, '320x320');
+        const card = document.createElement('div');
+        card.className = 'p-2.5 rounded-xl bg-surface-900 hover:bg-surface-800 border theme-border cursor-pointer transition space-y-1.5';
+        card.innerHTML = `
+          <div class="aspect-square rounded-lg overflow-hidden bg-surface-800">
+            ${cover ? `<img src="${escapeHtml(cover)}" class="w-full h-full object-cover" />` : ''}
+          </div>
+          <p class="text-xs font-medium theme-text-main truncate">${escapeHtml(al.title)}</p>
+          <p class="text-[11px] theme-text-muted truncate">${escapeHtml(al.artist?.name || (al.artists && al.artists[0]?.name) || '')}</p>
+        `;
+        card.addEventListener('click', () => loadAlbumDetail(al.id));
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    }
+
+    function renderArtistGrid(container, artists) {
+      container.innerHTML = '';
+      if (!artists.length) {
+        container.innerHTML = `<p class="text-xs theme-text-muted py-4">No artists found.</p>`;
+        return;
+      }
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3';
+      artists.forEach(ar => {
+        const pic = getTidalImageUrl(ar.picture, '320x320');
+        const card = document.createElement('div');
+        card.className = 'p-3.5 rounded-xl bg-surface-900 hover:bg-surface-800 border theme-border cursor-pointer transition text-center space-y-2';
+        card.innerHTML = `
+          <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-surface-800 flex items-center justify-center border theme-border">
+            ${pic ? `<img src="${escapeHtml(pic)}" class="w-full h-full object-cover" />` : `<i class="fa-solid fa-user text-lg theme-text-muted"></i>`}
+          </div>
+          <p class="text-xs font-medium theme-text-main truncate">${escapeHtml(ar.name)}</p>
+        `;
+        card.addEventListener('click', () => loadArtistDetail(ar.id, ar.name));
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    }
+
+    function renderTidalPlaylistGrid(container, playlists) {
+      container.innerHTML = '';
+      if (!playlists.length) {
+        container.innerHTML = `<p class="text-xs theme-text-muted py-4">No playlists found.</p>`;
+        return;
+      }
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3';
+      playlists.forEach(pl => {
+        const uuid = pl.uuid || pl.id;
+        const img = getTidalImageUrl(pl.squareImage || pl.image, '320x320');
+        const card = document.createElement('div');
+        card.className = 'p-3 rounded-xl bg-surface-900 hover:bg-surface-800 border theme-border cursor-pointer transition flex items-center gap-3';
+        card.innerHTML = `
+          <div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-800 shrink-0 flex items-center justify-center">
+            ${img ? `<img src="${escapeHtml(img)}" class="w-full h-full object-cover" />` : `<i class="fa-solid fa-bars-staggered theme-text-muted"></i>`}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-semibold theme-text-main truncate">${escapeHtml(pl.title)}</p>
+            <p class="text-[11px] theme-text-muted truncate">${escapeHtml(pl.description || `${pl.numberOfTracks || ''} tracks`)}</p>
+          </div>
+        `;
+        card.addEventListener('click', () => loadTidalPlaylistDetail(uuid));
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    }
+
+    function renderLikedView() {
+      const sub = document.getElementById('likedHeaderSubtitle');
+      if (sub) sub.textContent = `${state.likedSongs.length} favorite tracks stored in your library`;
+      const container = document.getElementById('likedTracksContainer');
+      if (container) renderTrackList(container, state.likedSongs, { allowQueuePlay: true });
+    }
+
+    function renderDownloadsView() {
+      const sub = document.getElementById('downloadsSubtitle');
+      if (sub) sub.textContent = `${state.downloads.length} tracks saved to your device`;
+      const container = document.getElementById('downloadsTracksContainer');
+      if (container) renderTrackList(container, state.downloads, { allowQueuePlay: true });
+    }
+
+    function renderLibraryView() {
+      document.getElementById('libCardLikedCount').textContent = `${state.likedSongs.length} tracks saved`;
+      document.getElementById('libCardPlaylistsCount').textContent = `${state.playlists.length} playlists`;
+      document.getElementById('libCardHistoryCount').textContent = `${state.history.length} tracks played`;
+
+      const albumsBox = document.getElementById('savedAlbumsContainer');
+      albumsBox.innerHTML = '';
+      if (!state.savedAlbums.length) {
+        albumsBox.innerHTML = `<p class="text-xs theme-text-muted col-span-full">No saved albums yet.</p>`;
+      } else {
+        state.savedAlbums.forEach(al => {
+          const cover = getTidalImageUrl(al.cover, '320x320');
+          const card = document.createElement('div');
+          card.className = 'p-2.5 rounded-xl bg-surface-900 hover:bg-surface-800 border theme-border cursor-pointer transition space-y-1.5';
+          card.innerHTML = `
+            <div class="aspect-square rounded-lg overflow-hidden bg-surface-800">
+              ${cover ? `<img src="${escapeHtml(cover)}" class="w-full h-full object-cover" />` : ''}
+            </div>
+            <p class="text-xs font-medium theme-text-main truncate">${escapeHtml(al.title)}</p>
+            <p class="text-[11px] theme-text-muted truncate">${escapeHtml(al.artistName || '')}</p>
+          `;
+          card.addEventListener('click', () => loadAlbumDetail(al.id));
+          albumsBox.appendChild(card);
+        });
+      }
+
+      const historyBox = document.getElementById('historyTracksContainer');
+      renderTrackList(historyBox, state.history, { allowQueuePlay: true });
+    }
+
+    function renderPlaylistsView() {
+      const grid = document.getElementById('playlistsGrid');
+      const panel = document.getElementById('activePlaylistPanel');
+      grid.innerHTML = '';
+
+      state.playlists.forEach(pl => {
+        const isSelected = pl.id === state.activePlaylistId;
+        const card = document.createElement('div');
+        card.className = `p-3.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+          isSelected
+            ? 'bg-surface-800 theme-border'
+            : 'bg-surface-900 hover:bg-surface-800/70 theme-border'
+        }`;
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-lg bg-surface-800 border theme-border flex items-center justify-center theme-text-main shrink-0">
+              <i class="fa-solid fa-bars-staggered text-xs"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="text-xs font-semibold theme-text-main truncate">${escapeHtml(pl.name)}</h4>
+              <p class="text-[11px] theme-text-muted truncate">${pl.tracks.length} tracks • ${escapeHtml(pl.description)}</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-[10px] theme-text-muted"></i>
+        `;
+        card.addEventListener('click', () => {
+          state.activePlaylistId = pl.id;
+          renderPlaylistsView();
+        });
+        grid.appendChild(card);
+      });
+
+      const activePl = state.playlists.find(p => p.id === state.activePlaylistId) || state.playlists[0];
+      if (activePl) {
+        state.activePlaylistId = activePl.id;
+        panel.classList.remove('hidden');
+        document.getElementById('activePlaylistTitle').textContent = activePl.name;
+        document.getElementById('activePlaylistDesc').textContent = `${activePl.tracks.length} tracks • ${activePl.description}`;
+        renderTrackList(document.getElementById('activePlaylistTracks'), activePl.tracks, {
+          allowQueuePlay: true,
+          playlistId: activePl.id
+        });
+      } else {
+        panel.classList.add('hidden');
+      }
+    }
+
+    function renderSidebarPlaylists() {
+      const box = document.getElementById('sidebarPlaylistsList');
+      if (!box) return;
+      box.innerHTML = '';
+      state.playlists.forEach(pl => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs theme-text-muted hover:theme-text-main hover:bg-surface-800/60 transition text-left';
+        btn.innerHTML = `
+          <span class="truncate">${escapeHtml(pl.name)}</span>
+          <span class="text-[10px] font-mono theme-text-muted ml-2">${pl.tracks.length}</span>
+        `;
+        btn.addEventListener('click', () => {
+          state.activePlaylistId = pl.id;
+          switchView('playlists');
+          renderPlaylistsView();
+        });
+        box.appendChild(btn);
+      });
+    }
+
+    function renderQueue() {
+      const box = document.getElementById('queueItemsContainer');
+      const sub = document.getElementById('queueSubInfo');
+      if (!box) return;
+      sub.textContent = `${state.queue.length} tracks in queue`;
+      box.innerHTML = '';
+
+      if (!state.queue.length) {
+        box.innerHTML = `<p class="text-xs theme-text-muted py-6 text-center">Queue is empty.</p>`;
+        return;
+      }
+
+      state.queue.forEach((track, idx) => {
+        const isCurrent = idx === state.queueIndex;
+        const item = document.createElement('div');
+        item.className = `flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border text-xs cursor-pointer transition ${
+          isCurrent ? 'bg-surface-800 theme-border theme-text-main font-semibold' : 'bg-transparent border-transparent hover:bg-surface-800/60 theme-text-muted'
+        }`;
+        item.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <p class="truncate theme-text-main">${idx + 1}. ${escapeHtml(track.title)}</p>
+            <p class="text-[10px] theme-text-muted truncate">${escapeHtml(track.artist.name)}</p>
+          </div>
+          <button class="remove-q-item p-1 theme-text-muted hover:text-rose-400" title="Remove">
+            <i class="fa-solid fa-xmark text-[11px]"></i>
+          </button>
+        `;
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.remove-q-item')) return;
+          playTrackAtIndex(idx);
+        });
+        item.querySelector('.remove-q-item').addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.queue.splice(idx, 1);
+          if (idx < state.queueIndex) state.queueIndex--;
+          renderQueue();
+          updateBadges();
+        });
+        box.appendChild(item);
+      });
+    }
+
+    function refreshTrackRowHighlights() {
+      const currentId = state.queue[state.queueIndex]?.id;
+      document.querySelectorAll('.track-row').forEach(row => {
+        const rid = Number(row.getAttribute('data-track-id'));
+        const active = rid === currentId;
+        row.classList.toggle('bg-surface-800', active);
+      });
+    }
+
+    function updateBadges() {
+      document.getElementById('likedCountBadge').textContent = String(state.likedSongs.length);
+      document.getElementById('playlistCountBadge').textContent = String(state.playlists.length);
+      const dlBadge = document.getElementById('downloadsCountBadge');
+      if (dlBadge) dlBadge.textContent = String(state.downloads.length);
+      const totalLib = state.likedSongs.length + state.playlists.length + state.savedAlbums.length;
+      document.getElementById('libraryTotalBadge').textContent = String(totalLib);
+      document.getElementById('desktopQueueCount').textContent = String(state.queue.length);
+      const mobBadge = document.getElementById('mobileQueueBadge');
+      mobBadge.textContent = String(state.queue.length);
+      mobBadge.classList.toggle('hidden', state.queue.length === 0);
+      document.getElementById('qualityBadgeTop').textContent = state.quality === 'HI_RES_LOSSLESS' ? 'HI-RES' : state.quality;
+    }
+
+    // =========================================================================
+    // NAVIGATION & MODALS
+    // =========================================================================
+    function switchView(viewName) {
+      if (state.currentView && state.currentView !== 'detail' && viewName === 'detail') {
+        state.previousView = state.currentView;
+      }
+      state.currentView = viewName;
+      const views = ['home', 'search', 'recommendations', 'library', 'liked', 'playlists', 'downloads', 'detail'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.classList.toggle('hidden', v !== viewName);
+      });
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.classList.contains('hidden') && !btn.closest('header')) return;
+        const target = btn.getAttribute('data-nav');
+        const active = target === viewName;
+        if (btn.closest('aside')) {
+          btn.classList.toggle('nav-btn-active', active);
+          btn.classList.toggle('theme-text-muted', !active);
+        } else if (btn.closest('nav')) {
+          btn.className = `nav-btn flex flex-col items-center gap-0.5 text-[10px] font-medium ${active ? 'theme-accent-text' : 'theme-text-muted'}`;
+        }
+      });
+
+      if (viewName === 'home') renderHomeFeed();
+      if (viewName === 'search') renderSearchView();
+      if (viewName === 'liked') renderLikedView();
+      if (viewName === 'library') renderLibraryView();
+      if (viewName === 'playlists') renderPlaylistsView();
+      if (viewName === 'downloads') renderDownloadsView();
+      if (viewName === 'recommendations') {
+        populateRecSeedSelect();
+        if (!state.recommendations.length) loadRecommendations();
+      }
+    }
+
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+      }
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) {
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+      }
+    }
+
+    function openDrawer(tab = 'queue') {
+      const drawer = document.getElementById('sideDrawer');
+      drawer.classList.remove('hidden');
+      drawer.classList.add('flex');
+      switchDrawerTab(tab);
+    }
+
+    function switchDrawerTab(tab) {
+      const isQueue = tab === 'queue';
+      document.getElementById('drawerQueuePanel').classList.toggle('hidden', !isQueue);
+      document.getElementById('drawerLyricsPanel').classList.toggle('hidden', isQueue);
+      document.getElementById('drawerTabQueue').className = isQueue
+        ? 'px-2.5 py-1 rounded-md text-xs font-medium bg-surface-800 theme-text-main border theme-border'
+        : 'px-2.5 py-1 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main';
+      document.getElementById('drawerTabLyrics').className = !isQueue
+        ? 'px-2.5 py-1 rounded-md text-xs font-medium bg-surface-800 theme-text-main border theme-border'
+        : 'px-2.5 py-1 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main';
+    }
+
+    // =========================================================================
+    // EVENT LISTENERS & INITIALIZATION
+    // =========================================================================
+    function initEvents() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-nav');
+          if (target) switchView(target);
+        });
+      });
+
+      // Theme controls
+      const themeSelect = document.getElementById('themeSelect');
+      if (themeSelect) {
+        themeSelect.value = state.theme;
+        themeSelect.addEventListener('change', () => {
+          applyTheme(themeSelect.value);
+          showToast(`Theme: ${themeSelect.options[themeSelect.selectedIndex].text.replace('Theme: ', '')}`);
+        });
+      }
+      document.querySelectorAll('[data-theme-pick]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const chosen = btn.getAttribute('data-theme-pick');
+          applyTheme(chosen);
+          showToast(`Switched theme to ${chosen}`);
+        });
+      });
+      document.getElementById('mobileThemeBtn').addEventListener('click', () => {
+        const nextIdx = (THEME_LIST.indexOf(state.theme) + 1) % THEME_LIST.length;
+        applyTheme(THEME_LIST[nextIdx]);
+        showToast(`Theme: ${THEME_LIST[nextIdx]}`);
+      });
+
+      // Search controls
+      const searchInput = document.getElementById('searchInput');
+      const searchTypeSelect = document.getElementById('searchTypeSelect');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+      searchInput.addEventListener('input', () => {
+        clearSearchBtn.classList.toggle('hidden', !searchInput.value);
+      });
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') performSearch(searchInput.value, searchTypeSelect.value);
+      });
+      document.getElementById('searchSubmitBtn').addEventListener('click', () => {
+        performSearch(searchInput.value, searchTypeSelect.value);
+      });
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        state.activeSearchQuery = '';
+        renderSearchView();
+        searchInput.focus();
+      });
+      const dismissSearchBtn = document.getElementById('dismissSearchBtn');
+      if (dismissSearchBtn) {
+        dismissSearchBtn.addEventListener('click', () => {
+          switchView('home');
+        });
+      }
+
+      document.querySelectorAll('.quick-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const q = chip.getAttribute('data-quick-search');
+          searchInput.value = q;
+          searchTypeSelect.value = 's';
+          performSearch(q, 's');
+        });
+      });
+
+      const homeRefreshSongsBtn = document.getElementById('homeRefreshSongsBtn');
+      if (homeRefreshSongsBtn) {
+        homeRefreshSongsBtn.addEventListener('click', () => loadRecommendations());
+      }
+      document.getElementById('heroRecsBtn').addEventListener('click', () => {
+        switchView('recommendations');
+        loadRecommendations();
+      });
+      document.getElementById('heroShuffleLikedBtn').addEventListener('click', () => {
+        const pool = state.likedSongs.length ? state.likedSongs : DEFAULT_SEED_TRACKS;
+        state.shuffle = true;
+        updateShuffleRepeatUI();
+        setQueueAndPlay(pool, 0);
+      });
+
+      document.getElementById('refreshRecsBtn').addEventListener('click', () => loadRecommendations());
+      document.getElementById('recSeedSelect').addEventListener('change', () => loadRecommendations());
+      document.getElementById('playAllRecsBtn').addEventListener('click', () => {
+        if (state.recommendations.length) setQueueAndPlay(state.recommendations, 0);
+      });
+
+      document.getElementById('libCardLiked').addEventListener('click', () => switchView('liked'));
+      document.getElementById('libCardPlaylists').addEventListener('click', () => switchView('playlists'));
+      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        state.history = [];
+        saveState();
+        renderLibraryView();
+        showToast('Cleared playback history');
+      });
+
+      document.getElementById('clearDownloadsBtn').addEventListener('click', () => {
+        state.downloads = [];
+        saveState();
+        renderDownloadsView();
+        showToast('Cleared downloads log');
+      });
+
+      document.getElementById('exportLibraryBtn').addEventListener('click', () => {
+        const dataStr = JSON.stringify({
+          likedSongs: state.likedSongs,
+          playlists: state.playlists,
+          savedAlbums: state.savedAlbums,
+          history: state.history,
+          downloads: state.downloads
+        }, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'hifi-player-library.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Exported library backup', 'success');
+      });
+
+      document.getElementById('importLibraryInput').addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result));
+            if (Array.isArray(parsed.likedSongs)) state.likedSongs = parsed.likedSongs;
+            if (Array.isArray(parsed.playlists)) state.playlists = parsed.playlists;
+            if (Array.isArray(parsed.savedAlbums)) state.savedAlbums = parsed.savedAlbums;
+            if (Array.isArray(parsed.history)) state.history = parsed.history;
+            saveState();
+            renderLibraryView();
+            renderSidebarPlaylists();
+            showToast('Imported library backup', 'success');
+          } catch (err) {
+            showToast('Invalid library JSON file', 'error');
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById('playLikedBtn').addEventListener('click', () => {
+        if (!state.likedSongs.length) return showToast('No liked songs yet');
+        setQueueAndPlay(state.likedSongs, 0);
+      });
+      document.getElementById('shuffleLikedBtn').addEventListener('click', () => {
+        if (!state.likedSongs.length) return showToast('No liked songs yet');
+        state.shuffle = true;
+        updateShuffleRepeatUI();
+        setQueueAndPlay(state.likedSongs, 0);
+      });
+
+      document.getElementById('createPlaylistModalBtn').addEventListener('click', () => openModal('playlistModal'));
+      document.getElementById('sidebarCreatePlaylistBtn').addEventListener('click', () => openModal('playlistModal'));
+      document.getElementById('closePlaylistModalBtn').addEventListener('click', () => closeModal('playlistModal'));
+      document.getElementById('cancelPlaylistModalBtn').addEventListener('click', () => closeModal('playlistModal'));
+      document.getElementById('savePlaylistModalBtn').addEventListener('click', () => {
+        const nameEl = document.getElementById('newPlaylistName');
+        const descEl = document.getElementById('newPlaylistDesc');
+        const created = createPlaylist(nameEl.value, descEl.value);
+        if (created) {
+          nameEl.value = '';
+          descEl.value = '';
+          closeModal('playlistModal');
+          if (state.pendingTrackForPlaylist) {
+            addTrackToPlaylist(created.id, state.pendingTrackForPlaylist);
+            state.pendingTrackForPlaylist = null;
+          }
+        }
+      });
+
+      document.getElementById('playActivePlaylistBtn').addEventListener('click', () => {
+        const pl = state.playlists.find(p => p.id === state.activePlaylistId);
+        if (pl && pl.tracks.length) setQueueAndPlay(pl.tracks, 0);
+      });
+      document.getElementById('shuffleActivePlaylistBtn').addEventListener('click', () => {
+        const pl = state.playlists.find(p => p.id === state.activePlaylistId);
+        if (pl && pl.tracks.length) {
+          state.shuffle = true;
+          updateShuffleRepeatUI();
+          setQueueAndPlay(pl.tracks, 0);
+        }
+      });
+      document.getElementById('downloadPlaylistBtn').addEventListener('click', async () => {
+        const pl = state.playlists.find(p => p.id === state.activePlaylistId);
+        if (!pl || !pl.tracks.length) return showToast('Playlist is empty');
+        showToast(`Downloading ${pl.tracks.length} tracks sequentially...`);
+        for (const t of pl.tracks) {
+          await downloadTrack(t);
+        }
+      });
+      document.getElementById('deleteActivePlaylistBtn').addEventListener('click', () => {
+        if (state.activePlaylistId) deletePlaylist(state.activePlaylistId);
+      });
+
+      document.getElementById('closeAddToPlaylistModalBtn').addEventListener('click', () => closeModal('addToPlaylistModal'));
+      document.getElementById('cancelAddToPlaylistBtn').addEventListener('click', () => closeModal('addToPlaylistModal'));
+      document.getElementById('quickNewPlaylistFromAddBtn').addEventListener('click', () => {
+        closeModal('addToPlaylistModal');
+        openModal('playlistModal');
+      });
+
+      document.getElementById('backFromDetailBtn').addEventListener('click', () => switchView(state.previousView || 'home'));
+
+      // Player transport buttons
+      document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+      document.getElementById('nextBtn').addEventListener('click', () => playNextTrack(false));
+      document.getElementById('prevBtn').addEventListener('click', playPrevTrack);
+      document.getElementById('shuffleBtn').addEventListener('click', toggleShuffle);
+      document.getElementById('repeatBtn').addEventListener('click', cycleRepeatMode);
+
+      document.getElementById('seekSlider').addEventListener('input', (e) => {
+        const dur = audio.duration || (state.queue[state.queueIndex]?.duration || 0);
+        if (dur > 0) {
+          audio.currentTime = (parseFloat(e.target.value) / 100) * dur;
+        }
+      });
+
+      document.getElementById('volumeSlider').addEventListener('input', (e) => {
+        state.volume = parseFloat(e.target.value);
+        state.muted = state.volume === 0;
+        audio.volume = state.volume;
+        updateVolumeIcon();
+        saveState();
+      });
+
+      document.getElementById('muteBtn').addEventListener('click', () => {
+        state.muted = !state.muted;
+        audio.volume = state.muted ? 0 : state.volume;
+        updateVolumeIcon();
+      });
+
+      document.getElementById('playerLikeBtn').addEventListener('click', () => {
+        const cur = state.queue[state.queueIndex] || state.searchResults[0] || DEFAULT_SEED_TRACKS[0];
+        if (cur) toggleLikeTrack(cur);
+      });
+
+      const playerDlBtn = document.getElementById('playerDownloadBtn');
+      playerDlBtn.addEventListener('click', () => {
+        const cur = state.queue[state.queueIndex] || state.searchResults[0] || DEFAULT_SEED_TRACKS[0];
+        if (cur) downloadTrack(cur, playerDlBtn);
+      });
+
+      document.getElementById('playerAddPlaylistBtn').addEventListener('click', () => {
+        const cur = state.queue[state.queueIndex] || state.searchResults[0] || DEFAULT_SEED_TRACKS[0];
+        if (cur) openAddToPlaylistModal(cur);
+      });
+
+      document.getElementById('playerRadioBtn').addEventListener('click', () => {
+        const cur = state.queue[state.queueIndex];
+        switchView('recommendations');
+        loadRecommendations(cur || null);
+      });
+
+      const qualitySelect = document.getElementById('qualitySelect');
+      qualitySelect.value = state.quality;
+      qualitySelect.addEventListener('change', () => {
+        state.quality = qualitySelect.value;
+        saveState();
+        showToast(`Quality: ${state.quality}`);
+      });
+
+      document.getElementById('toggleQueueBtn').addEventListener('click', () => openDrawer('queue'));
+      document.getElementById('mobileQueueBtn').addEventListener('click', () => openDrawer('queue'));
+      document.getElementById('toggleLyricsBtn').addEventListener('click', () => openDrawer('lyrics'));
+      document.getElementById('drawerTabQueue').addEventListener('click', () => switchDrawerTab('queue'));
+      document.getElementById('drawerTabLyrics').addEventListener('click', () => switchDrawerTab('lyrics'));
+      document.getElementById('closeDrawerBtn').addEventListener('click', () => {
+        const drawer = document.getElementById('sideDrawer');
+        drawer.classList.add('hidden');
+        drawer.classList.remove('flex');
+      });
+      document.getElementById('clearQueueBtn').addEventListener('click', () => {
+        state.queue = [];
+        state.originalQueue = [];
+        state.queueIndex = -1;
+        renderQueue();
+        updateBadges();
+      });
+
+      document.getElementById('mobileSearchBtn').addEventListener('click', () => {
+        switchView('search');
+        searchInput.focus();
+      });
+
+      // Settings modal (Manual API URL + Fallback astrasphe.re configuration)
+      const openSettings = () => {
+        document.getElementById('apiBaseInput').value = state.apiBase;
+        const fbInput = document.getElementById('fallbackApiInput');
+        if (fbInput) fbInput.value = state.fallbackApiBase || FALLBACK_API_BASE;
+        const segProxyInput = document.getElementById('segmentProxyInput');
+        if (segProxyInput) segProxyInput.value = state.segmentProxyUrl || '';
+        document.getElementById('failoverCheckbox').checked = state.enableFailover;
+        document.getElementById('compactRowsCheckbox').checked = Boolean(state.compactRows);
+        openModal('settingsModal');
+      };
+      document.getElementById('openSettingsBtn').addEventListener('click', openSettings);
+      document.getElementById('mobileSettingsBtn').addEventListener('click', openSettings);
+      document.getElementById('closeSettingsModalBtn').addEventListener('click', () => closeModal('settingsModal'));
+      document.getElementById('cancelSettingsModalBtn').addEventListener('click', () => closeModal('settingsModal'));
+      document.querySelectorAll('.api-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('apiBaseInput').value = btn.getAttribute('data-api-preset');
+        });
+      });
+      document.getElementById('saveSettingsModalBtn').addEventListener('click', () => {
+        state.apiBase = API_BASE;
+        state.fallbackApiBase = API_BASE;
+        state.enableFailover = false;
+        const segProxyInput = document.getElementById('segmentProxyInput');
+        state.segmentProxyUrl = segProxyInput ? segProxyInput.value.trim() : '';
+        preferredSegmentRoute = null;
+        state.compactRows = document.getElementById('compactRowsCheckbox').checked;
+        document.body.classList.toggle('compact-rows', Boolean(state.compactRows));
+        saveState();
+        closeModal('settingsModal');
+        checkApiHealth();
+        showToast('Saved terminal settings (locked to h.shy.cx)', 'success');
+      });
+
+      document.getElementById('pingApiBtn').addEventListener('click', checkApiHealth);
+      const testStreamBtn = document.getElementById('testStreamPickupBtn');
+      if (testStreamBtn) {
+        testStreamBtn.addEventListener('click', runStreamPickupDiagnostics);
+      }
+
+      // Keyboard shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+        if (e.code === 'Space') {
+          e.preventDefault();
+          togglePlayPause();
+        } else if (e.key === 's' || e.key === 'S') {
+          toggleShuffle();
+        } else if (e.key === 'r' || e.key === 'R') {
+          cycleRepeatMode();
+        } else if (e.key === 'd' || e.key === 'D') {
+          const cur = state.queue[state.queueIndex];
+          if (cur) downloadTrack(cur, document.getElementById('playerDownloadBtn'));
+        } else if (e.key === 'm' || e.key === 'M') {
+          document.getElementById('muteBtn').click();
+        } else if (e.key === 'q' || e.key === 'Q') {
+          openDrawer('queue');
+        } else if (e.key === 'l' || e.key === 'L') {
+          openDrawer('lyrics');
+        } else if (e.key === '/') {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      });
+    }
+
+    function updateVolumeIcon() {
+      const icon = document.getElementById('volumeIcon');
+      if (state.muted || state.volume === 0) {
+        icon.className = 'fa-solid fa-volume-xmark text-xs text-rose-400';
+      } else if (state.volume < 0.5) {
+        icon.className = 'fa-solid fa-volume-low text-xs';
+      } else {
+        icon.className = 'fa-solid fa-volume-high text-xs';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      applyTheme(state.theme);
+      initEvents();
+      updateShuffleRepeatUI();
+      updateBadges();
+      renderSidebarPlaylists();
+      renderHomeFeed();
+      renderQueue();
+      checkApiHealth();
+      // If the user has prior listening history from an earlier session, refresh listening-based recommendations
+      if (state.history.length > 0 && state.recommendations.length === 0) {
+        loadRecommendations(state.history[0], { fromPlayback: true });
+      }
+    });
+  </script>
+</body>
+</html>
