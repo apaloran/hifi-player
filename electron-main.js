@@ -69,6 +69,7 @@ function createMainWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
       webSecurity: false, // Bypasses renderer-level CORS checks inside the desktop wrapper
       spellcheck: false,
       backgroundThrottling: false // Keep gapless queue & MSE pumping active when minimized

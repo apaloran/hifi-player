@@ -378,13 +378,10 @@
         </div>
         <div class="px-2.5 py-2 rounded-lg bg-surface-800/60 border theme-border flex items-center justify-between text-[11px]">
           <div class="flex items-center gap-2 min-w-0">
-            <span id="discordStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-            <i class="fa-brands fa-discord text-[11px] theme-accent-text shrink-0"></i>
-            <span id="discordStatusText" class="theme-text-muted font-mono truncate">RPC: Ready</span>
+            <span id="discordStatusDot" class="w-1.5 h-1.5 rounded-full bg-neutral-500 shrink-0"></span>
+            <i class="fa-brands fa-discord text-[11px] theme-text-muted shrink-0"></i>
+            <span id="discordStatusText" class="theme-text-muted font-mono truncate">RPC: Disabled</span>
           </div>
-          <button id="pingDiscordRpcBtn" class="theme-text-muted hover:theme-text-main ml-2" title="Reconnect &amp; Sync Discord RPC">
-            <i class="fa-solid fa-rotate text-[10px]"></i>
-          </button>
         </div>
       </div>
     </aside>
@@ -460,9 +457,6 @@
                 <span class="theme-accent-text">$</span>
                 <span>AUDIO_ENGINE: <strong class="theme-text-main">LOSSLESS FLAC / HI-RES</strong></span>
                 <span>::</span>
-                <span>DISCORD_RPC: <strong id="heroDiscordRpcLabel" class="theme-accent-text">ENABLED</strong></span>
-                <strong id="heroApiLabel" class="hidden"></strong>
-                <strong id="heroFallbackLabel" class="hidden"></strong>
                 <span class="term-cursor"></span>
               </div>
               <div class="hidden flex-wrap items-center gap-1.5">
@@ -512,17 +506,17 @@
             <div id="homeEmptyState" class="bg-surface-900/90 border theme-border p-5 space-y-3 font-mono text-left">
               <div class="flex items-center justify-between border-b theme-border pb-2 text-[11px] theme-text-muted">
                 <span>┌─[ tty1 // hifi-player@local ]</span>
-                <span class="theme-accent-text">[STREAM_MODE: FULL_TRACK_ONLY // DISCORD_RPC]</span>
+                <span class="theme-accent-text">[STREAM_MODE: FULL_TRACK_ONLY]</span>
               </div>
               <div class="space-y-1 text-xs">
-                <p class="theme-text-main"><span class="theme-accent-text">guest@hifi-tui:~$</span> status --audio --rpc</p>
-                <p class="theme-text-muted pl-4">&gt; lossless stream engine ready (full-track playback &amp; native Discord IPC Rich Presence active)</p>
+                <p class="theme-text-main"><span class="theme-accent-text">guest@hifi-tui:~$</span> status --audio</p>
+                <p class="theme-text-muted pl-4">&gt; lossless stream engine ready (full-track playback active)</p>
                 <p class="theme-text-main pt-1"><span class="theme-accent-text">guest@hifi-tui:~$</span> help --usage</p>
                 <p class="theme-text-muted pl-4">&gt; enter a track, artist, or album in the command bar above (press <kbd class="px-1 border theme-border theme-text-main">/</kbd>) and select a row to stream.</p>
-                <p class="theme-text-muted pl-4">&gt; as tracks play, listening-based recommendations populate below and broadcast directly to Discord.</p>
+                <p class="theme-text-muted pl-4">&gt; as tracks play, listening-based recommendations populate below.</p>
               </div>
               <div id="terminalLogBox" class="bg-surface-950 border theme-border p-2.5 text-[11px] theme-text-muted space-y-0.5 max-h-36 overflow-y-auto">
-                <div>[boot] hifi-tui initialized :: lossless stream engine ready :: discord-ipc=auto</div>
+                <div>[boot] hifi-tui initialized :: lossless stream engine ready</div>
               </div>
             </div>
 
@@ -928,8 +922,8 @@
     <div class="bg-surface-900 border theme-border rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-sm font-semibold theme-text-main">[config] Terminal Theme, Discord RPC &amp; Stream Diagnostics</h3>
-          <p class="text-xs theme-text-muted">Customize your theme look, native AppImage Discord RPC, and stream settings</p>
+          <h3 class="text-sm font-semibold theme-text-main">[config] Terminal Theme &amp; Stream Diagnostics</h3>
+          <p class="text-xs theme-text-muted">Customize your theme look and stream settings</p>
         </div>
         <button id="closeSettingsModalBtn" class="theme-text-muted hover:theme-text-main"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -1012,38 +1006,6 @@
           <input id="segmentProxyInput" type="url" value="" placeholder="Auto (api.cors.lol / cors.eu.org / direct <audio> fallback)" class="w-full px-3 py-2 rounded-lg bg-surface-800 border theme-border text-xs font-mono theme-text-main focus:outline-none focus:border-neutral-400" />
         </div>
 
-        <!-- Direct Built-In Discord Rich Presence (RPC) Configuration -->
-        <div class="p-3 rounded-lg bg-surface-800/80 border theme-border space-y-2.5">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i class="fa-brands fa-discord text-sm theme-accent-text"></i>
-              <div>
-                <p class="text-xs font-medium theme-text-main">Built-In Discord Rich Presence (AppImage IPC)</p>
-                <p class="text-[11px] theme-text-muted">Connects directly to your local Discord IPC socket (discord-ipc-0..9)</p>
-              </div>
-            </div>
-            <input id="discordRpcCheckbox" type="checkbox" checked class="w-4 h-4 rounded" />
-          </div>
-
-          <div class="flex items-center gap-2">
-            <div class="flex-1">
-              <label class="text-[10px] font-mono uppercase theme-text-muted block mb-1">Discord Application Client ID</label>
-              <input id="discordClientIdInput" type="text" value="1304892174928154684" placeholder="1304892174928154684" class="w-full px-2.5 py-1.5 rounded bg-surface-900 border theme-border text-xs font-mono theme-text-main focus:outline-none" />
-            </div>
-            <button id="testDiscordRpcBtn" type="button" class="mt-4 px-3 py-1.5 rounded bg-surface-700 hover:bg-surface-600 border theme-border text-[11px] font-mono theme-text-main transition shrink-0">
-              Reconnect / Sync
-            </button>
-          </div>
-
-          <div id="discordRpcPreviewBox" class="p-2 bg-surface-950/80 border theme-border text-[11px] font-mono theme-text-muted space-y-0.5">
-            <div class="flex items-center justify-between">
-              <span class="theme-accent-text font-semibold">Listening to HiFi Player</span>
-              <span id="discordRpcModalState" class="text-[10px]">AUTO-IPC</span>
-            </div>
-            <div id="discordRpcPreviewDetails" class="truncate theme-text-main">Idle — Play a track to broadcast presence</div>
-          </div>
-        </div>
-
         <!-- Live API & Stream Pickup Diagnostic -->
         <div class="p-3 rounded-lg bg-surface-800/80 border theme-border space-y-2">
           <div class="flex items-center justify-between">
@@ -1088,8 +1050,6 @@
       quality: 'LOSSLESS',
       theme: 'oled',
       compactRows: true,
-      discordRpcEnabled: true,
-      discordClientId: '1304892174928154684',
       currentView: 'home',
       // Playback state
       queue: [],
@@ -1165,8 +1125,6 @@
         if (saved.quality) state.quality = saved.quality;
         if (saved.theme && THEME_LIST.includes(saved.theme)) state.theme = saved.theme;
         if (typeof saved.compactRows === 'boolean') state.compactRows = saved.compactRows;
-        if (typeof saved.discordRpcEnabled === 'boolean') state.discordRpcEnabled = saved.discordRpcEnabled;
-        if (typeof saved.discordClientId === 'string' && saved.discordClientId.trim()) state.discordClientId = saved.discordClientId.trim();
         if (Array.isArray(saved.likedSongs)) state.likedSongs = saved.likedSongs;
         if (Array.isArray(saved.playlists)) state.playlists = saved.playlists;
         if (Array.isArray(saved.savedAlbums)) state.savedAlbums = saved.savedAlbums;
@@ -1192,8 +1150,6 @@
           quality: state.quality,
           theme: state.theme,
           compactRows: state.compactRows,
-          discordRpcEnabled: state.discordRpcEnabled,
-          discordClientId: state.discordClientId,
           likedSongs: state.likedSongs,
           playlists: state.playlists,
           savedAlbums: state.savedAlbums,
@@ -1434,10 +1390,6 @@
 
     function updateEndpointLabels() {
       document.getElementById('sidebarApiHost').textContent = 'lossless';
-      const heroLbl = document.getElementById('heroApiLabel');
-      if (heroLbl) heroLbl.textContent = 'LOSSLESS';
-      const fbLbl = document.getElementById('heroFallbackLabel');
-      if (fbLbl) fbLbl.textContent = 'DISABLED';
     }
 
     function updateApiStatusIndicator(ok, _hostUrl = API_BASE, versionText = '') {
@@ -2567,410 +2519,11 @@
         : '<i class="fa-regular fa-heart text-xs"></i>';
     }
 
-    // =========================================================================
-    // DIRECT IN-APP DISCORD RICH PRESENCE (IPC SOCKET + ELECTRON / WS FALLBACK)
-    // =========================================================================
-    let nativeIpcSocket = null;
-    let nativeIpcReady = false;
-    let nativeIpcConnecting = false;
-    let nativeIpcActiveClientId = null;
-    let pendingDiscordPayload = null;
-    let lastRpcUpdateTs = 0;
-
-    function getNodeModulesIfAvailable() {
-      try {
-        const req = window.require || (window.process && window.process.mainModule && window.process.mainModule.require);
-        if (typeof req === 'function') {
-          return {
-            net: req('net'),
-            fs: req('fs'),
-            path: req('path'),
-            os: req('os'),
-            crypto: req('crypto')
-          };
-        }
-      } catch (_) {}
-      return null;
-    }
-
-    function updateDiscordStatusUI(statusText, mode = 'ready') {
-      const dot = document.getElementById('discordStatusDot');
-      const txt = document.getElementById('discordStatusText');
-      const heroLbl = document.getElementById('heroDiscordRpcLabel');
-      const modalState = document.getElementById('discordRpcModalState');
-
-      if (!state.discordRpcEnabled) {
-        if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-neutral-500 shrink-0';
-        if (txt) txt.textContent = 'RPC: Off';
-        if (heroLbl) heroLbl.textContent = 'DISABLED';
-        if (modalState) modalState.textContent = 'DISABLED';
-        return;
-      }
-
-      if (mode === 'connected') {
-        if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0';
-        if (txt) txt.textContent = statusText || 'RPC: Connected';
-        if (heroLbl) heroLbl.textContent = 'CONNECTED (IPC)';
-        if (modalState) modalState.textContent = 'CONNECTED (IPC)';
-      } else if (mode === 'standby') {
-        if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0';
-        if (txt) txt.textContent = statusText || 'RPC: Waiting';
-        if (heroLbl) heroLbl.textContent = 'READY (AUTO-IPC)';
-        if (modalState) modalState.textContent = 'WAITING FOR DISCORD';
-      } else {
-        if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0';
-        if (txt) txt.textContent = statusText || 'RPC: Ready';
-        if (heroLbl) heroLbl.textContent = 'ENABLED';
-        if (modalState) modalState.textContent = 'AUTO-IPC';
-      }
-    }
-
-    function encodeDiscordIpcFrame(op, obj) {
-      const jsonStr = JSON.stringify(obj);
-      const byteLen = Buffer.byteLength(jsonStr, 'utf8');
-      const buf = Buffer.alloc(8 + byteLen);
-      buf.writeInt32LE(op, 0);
-      buf.writeInt32LE(byteLen, 4);
-      buf.write(jsonStr, 8, byteLen, 'utf8');
-      return buf;
-    }
-
-    function listCandidateDiscordSockets(nodeMods) {
-      const { fs, path, os } = nodeMods;
-      const proc = window.process || {};
-      if (proc.platform === 'win32') {
-        const pipes = [];
-        for (let i = 0; i < 10; i++) pipes.push(`\\\\?\\pipe\\discord-ipc-${i}`);
-        return pipes;
-      }
-      const env = proc.env || {};
-      let uid = '';
-      try { uid = String(os.userInfo().uid); } catch (_) {}
-      const runtimeDirs = [
-        env.XDG_RUNTIME_DIR,
-        uid ? `/run/user/${uid}` : null,
-        env.TMPDIR,
-        env.TMP,
-        env.TEMP,
-        '/tmp'
-      ].filter(Boolean);
-
-      const allPaths = [];
-      for (const dir of runtimeDirs) {
-        for (let i = 0; i < 10; i++) {
-          allPaths.push(path.join(dir, `discord-ipc-${i}`));
-          allPaths.push(path.join(dir, 'app/com.discordapp.Discord', `discord-ipc-${i}`));
-          allPaths.push(path.join(dir, 'snap.discord', `discord-ipc-${i}`));
-        }
-      }
-      const existing = allPaths.filter(p => {
-        try { return fs.existsSync(p); } catch (_) { return false; }
-      });
-      return existing.length ? existing : allPaths.slice(0, 10);
-    }
-
-    function connectDirectDiscordIpc(clientId) {
-      const nodeMods = getNodeModulesIfAvailable();
-      if (!nodeMods) return false;
-
-      const targetClientId = String(clientId || state.discordClientId || '1304892174928154684');
-      if (nativeIpcSocket && !nativeIpcSocket.destroyed && nativeIpcReady && nativeIpcActiveClientId === targetClientId) {
-        return true;
-      }
-      if (nativeIpcConnecting) return true;
-
-      if (nativeIpcSocket) {
-        try { nativeIpcSocket.destroy(); } catch (_) {}
-        nativeIpcSocket = null;
-        nativeIpcReady = false;
-      }
-
-      const candidates = listCandidateDiscordSockets(nodeMods);
-      let idx = 0;
-      nativeIpcConnecting = true;
-
-      const tryNextSocket = () => {
-        if (idx >= candidates.length) {
-          nativeIpcConnecting = false;
-          nativeIpcReady = false;
-          updateDiscordStatusUI('RPC: Waiting', 'standby');
-          return;
-        }
-        const sockPath = candidates[idx++];
-        const sock = nodeMods.net.createConnection(sockPath);
-        let handshakeDone = false;
-
-        sock.once('connect', () => {
-          nativeIpcSocket = sock;
-          nativeIpcActiveClientId = targetClientId;
-          // Send OP 0 Handshake frame
-          sock.write(encodeDiscordIpcFrame(0, { v: 1, client_id: targetClientId }));
-        });
-
-        sock.on('data', (chunk) => {
-          try {
-            if (!chunk || chunk.length < 8) return;
-            const op = chunk.readInt32LE(0);
-            const len = chunk.readInt32LE(4);
-            const rawJson = chunk.slice(8, 8 + len).toString('utf8');
-            const msg = JSON.parse(rawJson);
-
-            // OP 3 = PING -> reply with OP 4 = PONG
-            if (op === 3) {
-              sock.write(encodeDiscordIpcFrame(4, msg));
-              return;
-            }
-            // OP 1 = FRAME
-            if (op === 1) {
-              if (!handshakeDone && (msg.evt === 'READY' || msg.cmd === 'DISPATCH')) {
-                handshakeDone = true;
-                nativeIpcReady = true;
-                nativeIpcConnecting = false;
-                const username = msg?.data?.user?.username;
-                termLog(`discord-ipc connected (${sockPath}${username ? ' :: ' + username : ''})`, 'ok');
-                updateDiscordStatusUI('RPC: Connected', 'connected');
-                if (pendingDiscordPayload) {
-                  sendFrameOverNativeIpc(pendingDiscordPayload, nodeMods);
-                }
-              }
-            } else if (op === 2) {
-              // OP 2 = CLOSE
-              sock.destroy();
-            }
-          } catch (_) {}
-        });
-
-        sock.on('error', () => {
-          sock.destroy();
-          if (!handshakeDone) {
-            tryNextSocket();
-          } else {
-            nativeIpcReady = false;
-            nativeIpcConnecting = false;
-            nativeIpcSocket = null;
-            updateDiscordStatusUI('RPC: Waiting', 'standby');
-          }
-        });
-
-        sock.on('close', () => {
-          if (handshakeDone) {
-            nativeIpcReady = false;
-            nativeIpcConnecting = false;
-            nativeIpcSocket = null;
-          }
-        });
-      };
-
-      tryNextSocket();
-      return true;
-    }
-
-    function sendFrameOverNativeIpc(payload, nodeMods = getNodeModulesIfAvailable()) {
-      if (!nodeMods || !nativeIpcSocket || nativeIpcSocket.destroyed || !nativeIpcReady) return false;
-      const pid = (window.process && window.process.pid) ? window.process.pid : 1000;
-      const nonce = nodeMods.crypto?.randomUUID ? nodeMods.crypto.randomUUID() : String(Date.now());
-
-      if (payload.action === 'clearActivity') {
-        nativeIpcSocket.write(encodeDiscordIpcFrame(1, {
-          cmd: 'SET_ACTIVITY',
-          args: { pid, activity: null },
-          nonce
-        }));
-        return true;
-      }
-
-      const act = payload.activity || {};
-      const discordActivity = {
-        type: typeof act.type === 'number' ? act.type : 2,
-        details: String(act.details || 'Listening to HiFi Player').padEnd(2, ' ').slice(0, 128),
-        state: String(act.state || 'Lossless Stream').padEnd(2, ' ').slice(0, 128),
-        assets: {
-          large_image: act.largeImageKey || 'hifi_logo',
-          large_text: String(act.largeImageText || 'HiFi Player').padEnd(2, ' ').slice(0, 128),
-          ...(act.smallImageKey ? {
-            small_image: act.smallImageKey,
-            small_text: String(act.smallImageText || 'HiFi Player').padEnd(2, ' ').slice(0, 128)
-          } : {})
-        },
-        ...(act.startTimestamp || act.endTimestamp ? {
-          timestamps: {
-            ...(act.startTimestamp ? { start: act.startTimestamp } : {}),
-            ...(act.endTimestamp ? { end: act.endTimestamp } : {})
-          }
-        } : {}),
-        ...(Array.isArray(act.buttons) && act.buttons.length ? { buttons: act.buttons.slice(0, 2) } : {}),
-        instance: false
-      };
-
-      nativeIpcSocket.write(encodeDiscordIpcFrame(1, {
-        cmd: 'SET_ACTIVITY',
-        args: { pid, activity: discordActivity },
-        nonce
-      }));
-      return true;
-    }
-
-    function buildDiscordRpcPayload(statusOverride = null) {
-      const track = state.queue[state.queueIndex];
-      if (!track) return null;
-
-      const isPlayingNow = statusOverride ? statusOverride === 'playing' : (state.isPlaying && !audio.paused);
-      const curSec = Math.max(0, Number(audio.currentTime || 0));
-      const durSec = Math.max(0, Number(audio.duration || track.duration || 0));
-      const nowMs = Date.now();
-      const startTimestamp = Math.floor(nowMs - (curSec * 1000));
-      const endTimestamp = (isPlayingNow && durSec > 0)
-        ? Math.floor(startTimestamp + (durSec * 1000))
-        : undefined;
-
-      const coverUrl = getTidalImageUrl(track.album?.cover, '640x640') || 'hifi_logo';
-      const qualityChip = document.getElementById('streamStatusChip')?.textContent || state.quality;
-      const qualityLabel = qualityChip === 'HI_RES_LOSSLESS' ? 'HI-RES' : qualityChip;
-
-      return {
-        clientId: state.discordClientId || '1304892174928154684',
-        action: 'setActivity',
-        activity: {
-          type: 2, // 2 = "Listening to" in Discord Rich Presence
-          details: `${track.title}${track.explicit ? ' [E]' : ''}`.slice(0, 128),
-          state: (isPlayingNow
-            ? `by ${track.artist.name} • ${track.album.title}`
-            : `Paused • by ${track.artist.name}`).slice(0, 128),
-          largeImageKey: coverUrl,
-          largeImageText: `${track.album.title} [${qualityLabel}]`.slice(0, 128),
-          smallImageKey: isPlayingNow ? 'play' : 'pause',
-          smallImageText: isPlayingNow ? `Playing (${qualityLabel})` : 'Paused',
-          instance: false,
-          ...(isPlayingNow && durSec > 0 ? { startTimestamp, endTimestamp } : {}),
-          buttons: [
-            {
-              label: 'Listen on Tidal',
-              url: `https://tidal.com/browse/track/${track.id}`
-            }
-          ]
-        }
-      };
-    }
-
-    async function dispatchDiscordRpcPayload(payload, isManualTest = false) {
-      const previewEl = document.getElementById('discordRpcPreviewDetails');
-      if (payload && payload.activity && previewEl) {
-        previewEl.textContent = `${payload.activity.details} — ${payload.activity.state}`;
-      } else if (previewEl && (!payload || payload.action === 'clearActivity')) {
-        previewEl.textContent = 'Idle — Play a track to broadcast presence';
-      }
-
-      if (!state.discordRpcEnabled) {
-        updateDiscordStatusUI('RPC: Off', 'off');
-        return false;
-      }
-
-      pendingDiscordPayload = payload;
-      let delivered = false;
-
-      // 1. Direct In-App Node `net` Discord IPC Socket (AppImage with nodeIntegration)
-      const nodeMods = getNodeModulesIfAvailable();
-      if (nodeMods) {
-        if (nativeIpcReady && nativeIpcActiveClientId === String(payload.clientId)) {
-          delivered = sendFrameOverNativeIpc(payload, nodeMods);
-        } else {
-          connectDirectDiscordIpc(payload.clientId);
-        }
-      }
-
-      // 2. Electron Preload / ContextBridge (window.discordRPC or window.electronAPI)
-      if (!delivered) {
-        try {
-          if (window.discordRPC && typeof window.discordRPC.setActivity === 'function') {
-            if (payload.action === 'clearActivity') {
-              await window.discordRPC.clearActivity?.();
-            } else {
-              await window.discordRPC.setActivity(payload.activity, payload.clientId);
-            }
-            delivered = true;
-          } else if (window.electronAPI && typeof window.electronAPI.sendDiscordRpc === 'function') {
-            await window.electronAPI.sendDiscordRpc(payload);
-            delivered = true;
-          }
-        } catch (_) {}
-      }
-
-      // 3. Automatic Main-Process Local Loopback Fallback (127.0.0.1:6473/rpc)
-      if (!delivered) {
-        try {
-          const ctrl = new AbortController();
-          const timer = setTimeout(() => ctrl.abort(), 900);
-          const res = await fetch('http://127.0.0.1:6473/rpc', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            signal: ctrl.signal
-          });
-          clearTimeout(timer);
-          if (res.ok) delivered = true;
-        } catch (_) {}
-      }
-
-      if (delivered) {
-        const shortTitle = payload?.activity?.details ? payload.activity.details.slice(0, 14) : 'Connected';
-        updateDiscordStatusUI(`RPC: ${shortTitle}`, 'connected');
-        if (isManualTest) {
-          termLog(`discord-rpc synced: "${payload?.activity?.details || 'Idle'}"`, 'ok');
-          showToast('Discord Rich Presence synced', 'success');
-        }
-      } else {
-        updateDiscordStatusUI(nodeMods ? 'RPC: Connecting' : 'RPC: Ready', 'standby');
-        if (isManualTest) {
-          showToast('Discord RPC queued (will broadcast automatically once Discord IPC is open)', 'info');
-        }
-      }
-      return delivered;
-    }
-
-    async function updateDiscordRpcActivity(statusOverride = null, isManualTest = false) {
-      if (!state.discordRpcEnabled) {
-        updateDiscordStatusUI('RPC: Off', 'off');
-        return;
-      }
-      const now = Date.now();
-      if (!isManualTest && statusOverride === 'timeupdate' && now - lastRpcUpdateTs < 15000) {
-        return;
-      }
-      lastRpcUpdateTs = now;
-
-      let payload = buildDiscordRpcPayload(statusOverride);
-      if (!payload && isManualTest) {
-        payload = {
-          clientId: state.discordClientId || '1304892174928154684',
-          action: 'setActivity',
-          activity: {
-            type: 2,
-            details: 'HiFi Player // Lossless TUI',
-            state: 'Browsing Lossless Catalog [FLAC]',
-            largeImageKey: 'hifi_logo',
-            largeImageText: 'HiFi TUI Lossless Audio Player',
-            smallImageKey: 'play',
-            smallImageText: 'Ready',
-            startTimestamp: Date.now()
-          }
-        };
-      }
-      if (!payload) return;
-      await dispatchDiscordRpcPayload(payload, isManualTest);
-    }
-
-    async function clearDiscordRpcActivity() {
-      await dispatchDiscordRpcPayload({
-        clientId: state.discordClientId || '1304892174928154684',
-        action: 'clearActivity'
-      }, false);
-    }
 
     audio.addEventListener('playing', () => {
       state.isPlaying = true;
       updatePlayPauseButton();
       refreshTrackRowHighlights();
-      updateDiscordRpcActivity('playing');
     });
 
     audio.addEventListener('pause', () => {
@@ -2978,13 +2531,12 @@
         state.isPlaying = false;
         updatePlayPauseButton();
         refreshTrackRowHighlights();
-        updateDiscordRpcActivity('paused');
       }
     });
 
     audio.addEventListener('seeked', () => {
       if (state.queue[state.queueIndex]) {
-        updateDiscordRpcActivity(state.isPlaying ? 'playing' : 'paused');
+        // no-op (Discord RPC removed)
       }
     });
 
@@ -4258,7 +3810,6 @@
         state.queueIndex = -1;
         renderQueue();
         updateBadges();
-        clearDiscordRpcActivity();
       });
 
       document.getElementById('mobileSearchBtn').addEventListener('click', () => {
@@ -4275,10 +3826,6 @@
         if (segProxyInput) segProxyInput.value = state.segmentProxyUrl || '';
         document.getElementById('failoverCheckbox').checked = state.enableFailover;
         document.getElementById('compactRowsCheckbox').checked = Boolean(state.compactRows);
-        const rpcCheck = document.getElementById('discordRpcCheckbox');
-        if (rpcCheck) rpcCheck.checked = Boolean(state.discordRpcEnabled);
-        const rpcClientInput = document.getElementById('discordClientIdInput');
-        if (rpcClientInput) rpcClientInput.value = state.discordClientId || '1304892174928154684';
         openModal('settingsModal');
       };
       document.getElementById('openSettingsBtn').addEventListener('click', openSettings);
@@ -4299,45 +3846,13 @@
         preferredSegmentRoute = null;
         state.compactRows = document.getElementById('compactRowsCheckbox').checked;
         document.body.classList.toggle('compact-rows', Boolean(state.compactRows));
-        const rpcCheck = document.getElementById('discordRpcCheckbox');
-        if (rpcCheck) state.discordRpcEnabled = rpcCheck.checked;
-        const rpcClientInput = document.getElementById('discordClientIdInput');
-        if (rpcClientInput && rpcClientInput.value.trim()) state.discordClientId = rpcClientInput.value.trim();
         saveState();
-        if (state.discordRpcEnabled) {
-          connectDirectDiscordIpc(state.discordClientId);
-          updateDiscordRpcActivity();
-        } else {
-          clearDiscordRpcActivity();
-        }
         closeModal('settingsModal');
         checkApiHealth();
-      if (state.discordRpcEnabled) {
-        connectDirectDiscordIpc(state.discordClientId);
-        updateDiscordStatusUI('RPC: Ready', 'ready');
-      } else {
-        updateDiscordStatusUI('RPC: Off', 'off');
-      }
-        showToast('Saved terminal & Discord RPC settings', 'success');
+        showToast('Saved terminal settings', 'success');
       });
 
       document.getElementById('pingApiBtn').addEventListener('click', checkApiHealth);
-      const pingDiscordBtn = document.getElementById('pingDiscordRpcBtn');
-      if (pingDiscordBtn) {
-        pingDiscordBtn.addEventListener('click', () => {
-          nativeIpcReady = false;
-          connectDirectDiscordIpc(state.discordClientId);
-          updateDiscordRpcActivity(null, true);
-        });
-      }
-      const testDiscordBtn = document.getElementById('testDiscordRpcBtn');
-      if (testDiscordBtn) {
-        testDiscordBtn.addEventListener('click', () => {
-          nativeIpcReady = false;
-          connectDirectDiscordIpc(state.discordClientId);
-          updateDiscordRpcActivity(null, true);
-        });
-      }
       const testStreamBtn = document.getElementById('testStreamPickupBtn');
       if (testStreamBtn) {
         testStreamBtn.addEventListener('click', runStreamPickupDiagnostics);
